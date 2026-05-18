@@ -139,6 +139,68 @@ describe('Project manager API (e2e)', () => {
       });
   });
 
+  it('prevents users from reading, mutating, or attaching tasks across workspaces', async () => {
+    const owner = await register('Task Owner');
+    const outsider = await register('Task Outsider');
+
+    const projectRes = await request(app.getHttpServer())
+      .post('/api/projects')
+      .set('Authorization', owner.auth)
+      .send({ name: 'Owner Task Project' })
+      .expect(201);
+
+    const taskRes = await request(app.getHttpServer())
+      .post('/api/tasks')
+      .set('Authorization', owner.auth)
+      .send({
+        title: 'Private implementation task',
+        projectId: projectRes.body.id,
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .get(`/api/tasks/${taskRes.body.id}`)
+      .set('Authorization', outsider.auth)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .put(`/api/tasks/${taskRes.body.id}`)
+      .set('Authorization', outsider.auth)
+      .send({ status: 'DONE' })
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .delete(`/api/tasks/${taskRes.body.id}`)
+      .set('Authorization', outsider.auth)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .post('/api/tasks')
+      .set('Authorization', outsider.auth)
+      .send({
+        title: 'Attach to another workspace',
+        projectId: projectRes.body.id,
+      })
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .get('/api/tasks')
+      .set('Authorization', outsider.auth)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.some((task) => task.id === taskRes.body.id)).toBe(false);
+      });
+
+    await request(app.getHttpServer())
+      .get(`/api/tasks/${taskRes.body.id}`)
+      .set('Authorization', owner.auth)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.status).toBe('TODO');
+        expect(body.project.id).toBe(projectRes.body.id);
+      });
+  });
+
   afterAll(async () => {
     await app?.close();
   });
