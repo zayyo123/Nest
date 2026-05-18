@@ -7,7 +7,7 @@
         <p>按优先级、截止日期、状态和项目上下文规划工作。</p>
       </div>
       <div class="hero-actions">
-        <el-radio-group v-model="viewMode" size="large">
+        <el-radio-group v-model="viewMode" size="large" @change="syncFiltersToRoute">
           <el-radio-button label="board">看板</el-radio-button>
           <el-radio-button label="table">表格</el-radio-button>
         </el-radio-group>
@@ -17,18 +17,18 @@
 
     <section class="panel">
       <div class="toolbar toolbar-wrap">
-        <el-input v-model="filters.q" placeholder="搜索任务" clearable @input="resetPage" />
-        <el-select v-model="filters.status" placeholder="状态" clearable @change="resetPage">
+        <el-input v-model="filters.q" placeholder="搜索任务" clearable @input="syncFiltersToRoute" />
+        <el-select v-model="filters.status" placeholder="状态" clearable @change="syncFiltersToRoute">
           <el-option label="待办" value="TODO" />
           <el-option label="进行中" value="IN_PROGRESS" />
           <el-option label="已完成" value="DONE" />
         </el-select>
-        <el-select v-model="filters.priority" placeholder="优先级" clearable @change="resetPage">
+        <el-select v-model="filters.priority" placeholder="优先级" clearable @change="syncFiltersToRoute">
           <el-option label="高" value="HIGH" />
           <el-option label="中" value="MEDIUM" />
           <el-option label="低" value="LOW" />
         </el-select>
-        <el-select v-model="filters.projectId" placeholder="项目" clearable @change="resetPage">
+        <el-select v-model="filters.projectId" placeholder="项目" clearable @change="syncFiltersToRoute">
           <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
         </el-select>
       </div>
@@ -191,13 +191,14 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import api, { getApiErrorMessage } from '@/api'
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 type DueFilter = '' | 'today' | 'week' | 'overdue'
+type ViewMode = 'board' | 'table'
 type Project = { id: number; name: string; color?: string }
 type Task = {
   id: number
@@ -228,12 +229,13 @@ export default defineComponent({
   name: 'Tasks',
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const tasks = ref<Task[]>([])
     const projects = ref<Project[]>([])
     const loading = ref(false)
     const saving = ref(false)
     const updatingTaskId = ref<number | null>(null)
-    const viewMode = ref<'board' | 'table'>('board')
+    const viewMode = ref<ViewMode>('board')
     const currentPage = ref(1)
     const pageSize = 8
     const filters = reactive<{
@@ -294,11 +296,23 @@ export default defineComponent({
       const status = route.query.status
       const priority = route.query.priority
       const projectId = route.query.projectId
+      const q = route.query.q
+      const view = route.query.view
 
+      filters.q = ''
       filters.due = ''
       filters.status = ''
       filters.priority = ''
       filters.projectId = ''
+      viewMode.value = 'board'
+
+      if (typeof q === 'string') {
+        filters.q = q
+      }
+
+      if (view === 'board' || view === 'table') {
+        viewMode.value = view
+      }
 
       if (typeof due === 'string' && dueFilterOptions.some((option) => option.value === due)) {
         filters.due = due as DueFilter
@@ -472,7 +486,29 @@ export default defineComponent({
 
     const setDueFilter = (value: DueFilter) => {
       filters.due = value
+      syncFiltersToRoute()
+    }
+
+    const syncFiltersToRoute = () => {
       resetPage()
+
+      const query: Record<string, string> = {}
+      if (filters.q.trim()) query.q = filters.q.trim()
+      if (filters.status) query.status = filters.status
+      if (filters.priority) query.priority = filters.priority
+      if (filters.projectId) query.projectId = String(filters.projectId)
+      if (filters.due) query.due = filters.due
+      if (viewMode.value !== 'board') query.view = viewMode.value
+
+      const current = Object.fromEntries(
+        Object.entries(route.query)
+          .filter(([, value]) => typeof value === 'string')
+          .map(([key, value]) => [key, value as string]),
+      )
+
+      if (JSON.stringify(current) !== JSON.stringify(query)) {
+        void router.replace({ path: '/tasks', query })
+      }
     }
 
     const statusText = (status: TaskStatus) => {
@@ -558,6 +594,7 @@ export default defineComponent({
       saveTask,
       saving,
       setDueFilter,
+      syncFiltersToRoute,
       sortedTasks,
       statusText,
       statusType,
