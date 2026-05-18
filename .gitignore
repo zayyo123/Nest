@@ -9,6 +9,7 @@ coverage/
 
 # Logs
 logs/
+.runtime-logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -17,8 +18,15 @@ yarn-error.log*
 
 # Environment files
 .env
+.env.*
 .env.local
 .env.*.local
+!.env.example
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
 
 # OS and editor files
 .DS_Store
@@ -36,3 +44,6 @@ Thumbs.db
 *.pid
 *.seed
 *.pid.lock
+
+# Local maintenance scripts
+reset-mysql80-root.ps1

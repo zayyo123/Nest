@@ -1,20 +1,21 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post('register')
   @HttpCode(200)
-  register(@Body() dto: any) {
-    void dto;
-    // Teaching demo only: replace this with user persistence and JWT signing in real auth.
-    return { accessToken: 'dummy-token' };
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
   }
 
   @Post('login')
   @HttpCode(200)
-  login(@Body() dto: any) {
-    void dto;
-    // The frontend only needs a token-shaped value to exercise protected routes.
-    return { accessToken: 'dummy-token' };
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 }

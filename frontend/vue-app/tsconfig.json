@@ -4,9 +4,12 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Node",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
     "types": ["node"],
     "baseUrl": ".",
     "paths": {

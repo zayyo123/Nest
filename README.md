@@ -1,36 +1,55 @@
-# Nest Learning Project
+# Nest Manager
 
-这是一个用于学习前后端分离开发的示例项目，包含 NestJS 后端、Vue 3 前端、MySQL 数据库和 Docker 编排配置。项目围绕“项目管理”和“任务管理”两个核心场景展开，适合用来练习 REST API、前端路由、状态管理、数据库实体关系和容器化部署。
+[![CI](https://github.com/zayyo123/Nest/actions/workflows/ci.yml/badge.svg)](https://github.com/zayyo123/Nest/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 项目结构
+Nest Manager is a full-stack project and task management application built with
+NestJS, Vue 3, TypeScript, TypeORM, JWT authentication, Swagger, and Docker.
+
+It is designed as a clean learning-friendly codebase: small enough to understand
+quickly, but structured like a real application with separated backend,
+frontend, API documentation, authentication guards, tests, and deployment files.
+
+## Features
+
+- User registration and login with hashed passwords and JWT tokens
+- Protected project and task CRUD APIs
+- Private workspaces: every project and task belongs to the authenticated user
+- Dashboard metrics for projects, tasks, completion rate, and recent work
+- Vue 3 frontend with Pinia, Vue Router, Element Plus, and Axios
+- Swagger API docs at `http://localhost:3000/docs`
+- Docker Compose setup for MySQL, backend, and frontend
+- sql.js fallback for quick local development without MySQL
+
+## Tech Stack
+
+| Area | Tools |
+| --- | --- |
+| Backend | NestJS, TypeORM, JWT, Swagger, MySQL, sql.js |
+| Frontend | Vue 3, TypeScript, Vite, Pinia, Vue Router, Element Plus |
+| Tooling | Docker, Docker Compose, Jest, GitHub Actions |
+
+## Repository Layout
 
 ```text
 .
-├── docker/                 # 前后端 Dockerfile 与 Nginx 配置
-├── docs/                   # 学习计划与每日记录
-├── frontend/vue-app/       # Vue 3 + TypeScript 前端
-├── nest-app/               # NestJS + TypeORM 后端
-├── docker-compose.yml      # MySQL、后端、前端容器编排
-└── env-setup.ps1           # Windows 环境准备脚本
+|-- docker/                 # Dockerfiles and Nginx config
+|-- docs/                   # Learning notes and project docs
+|-- frontend/vue-app/       # Vue frontend
+|-- nest-app/               # NestJS backend
+|-- docker-compose.yml      # MySQL + backend + frontend orchestration
+`-- env-setup.ps1           # Windows development helper
 ```
 
-## 技术栈
+## Quick Start
 
-- 后端：NestJS、TypeORM、Swagger、MySQL
-- 前端：Vue 3、TypeScript、Vite、Vue Router、Pinia、Element Plus、Axios
-- 部署：Docker、Docker Compose、Nginx
+### Prerequisites
 
-## 核心功能
+- Node.js 20 or newer
+- npm 10 or newer
+- Docker Desktop, optional for the Compose setup
 
-- 用户登录、注册演示接口，返回模拟 token。
-- 项目 CRUD：创建、查询、更新、删除项目。
-- 任务 CRUD：创建、查询、更新、删除任务，并可关联到项目。
-- Swagger API 文档：后端启动后访问 `http://localhost:3000/docs`。
-- 健康检查接口：`GET /api/health`。
-
-## 本地开发
-
-### 1. 启动后端
+### Backend
 
 ```bash
 cd nest-app
@@ -38,11 +57,24 @@ npm install
 npm run start:dev
 ```
 
-后端默认监听 `http://localhost:3000`。
+The backend runs at `http://localhost:3000` and exposes APIs under `/api`.
 
-后端默认连接本机 MySQL：数据库名 `nestlearn`，用户 `root`，密码 `root`。如果数据库配置不同，可以通过 `DB_HOST`、`DB_PORT`、`DB_DATABASE`、`DB_USER`、`DB_PASSWORD` 等环境变量覆盖。
+Without `DB_HOST`, the backend uses sql.js for a quick local database. To use
+MySQL, copy the example environment file and update the values:
 
-### 2. 启动前端
+```bash
+cd nest-app
+cp .env.example .env
+```
+
+On first startup the backend seeds a demo account:
+
+```text
+Email: demo@example.com
+Password: password123
+```
+
+### Frontend
 
 ```bash
 cd frontend/vue-app
@@ -50,72 +82,79 @@ npm install
 npm run dev
 ```
 
-前端默认监听 `http://localhost:5173`。开发环境中，Vite 会把 `/api` 请求代理到 `http://localhost:3000`，对应后端的全局 API 前缀。
+The frontend runs at `http://localhost:5173` and proxies `/api` requests to the
+backend.
 
-## Docker 启动
+## Docker
 
-在项目根目录执行：
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-容器启动后：
+Available services:
 
-- 前端：`http://localhost:5173`
-- 后端：`http://localhost:3000`
-- Swagger：`http://localhost:3000/docs`
-- MySQL：本机 `3306` 端口，默认数据库 `nestlearn`
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3000`
+- Swagger: `http://localhost:3000/docs`
+- Health check: `http://localhost:3000/api/health`
 
-## 常用命令
+## Useful Commands
 
-后端：
+Backend:
 
 ```bash
 cd nest-app
-npm run start:dev
 npm run build
 npm run test
+npm run test:e2e
 ```
 
-前端：
+Frontend:
 
 ```bash
 cd frontend/vue-app
-npm run dev
+npm run typecheck
 npm run build
 npm run preview
 ```
 
-## 接口速览
+## API Overview
 
-| 模块 | 方法 | 路径 | 说明 |
+| Module | Method | Path | Description |
 | --- | --- | --- | --- |
-| Auth | POST | `/api/auth/register` | 注册演示账号，返回模拟 token |
-| Auth | POST | `/api/auth/login` | 登录演示账号，返回模拟 token |
-| Projects | GET | `/api/projects` | 获取项目列表 |
-| Projects | POST | `/api/projects` | 创建项目 |
-| Projects | GET | `/api/projects/:id` | 获取项目详情 |
-| Projects | PUT | `/api/projects/:id` | 更新项目 |
-| Projects | DELETE | `/api/projects/:id` | 删除项目 |
-| Tasks | GET | `/api/tasks` | 获取任务列表 |
-| Tasks | POST | `/api/tasks` | 创建任务 |
-| Tasks | GET | `/api/tasks/:id` | 获取任务详情 |
-| Tasks | PUT | `/api/tasks/:id` | 更新任务 |
-| Tasks | DELETE | `/api/tasks/:id` | 删除任务 |
+| Auth | POST | `/api/auth/register` | Register and receive a JWT |
+| Auth | POST | `/api/auth/login` | Login and receive a JWT |
+| Projects | GET | `/api/projects` | List projects |
+| Projects | POST | `/api/projects` | Create a project |
+| Projects | GET | `/api/projects/:id` | Get project details |
+| Projects | PUT | `/api/projects/:id` | Update a project |
+| Projects | DELETE | `/api/projects/:id` | Delete a project |
+| Tasks | GET | `/api/tasks` | List tasks |
+| Tasks | POST | `/api/tasks` | Create a task |
+| Tasks | GET | `/api/tasks/:id` | Get task details |
+| Tasks | PUT | `/api/tasks/:id` | Update a task |
+| Tasks | DELETE | `/api/tasks/:id` | Delete a task |
 
-## 学习建议
+Project and task routes require a bearer token. Results are scoped to the
+current authenticated user, so users cannot read or mutate one another's
+projects or tasks.
 
-建议按这个顺序阅读源码：
+```text
+Authorization: Bearer <token>
+```
 
-1. `nest-app/src/app.module.ts`：理解模块注册、数据库连接和实体扫描。
-2. `nest-app/src/projects` 与 `nest-app/src/tasks`：理解 Controller、Service、Entity、DTO 的分层。
-3. `frontend/vue-app/src/api.ts`：理解前端如何统一请求后端。
-4. `frontend/vue-app/src/router/index.ts` 与 `src/stores/auth.ts`：理解路由守卫和登录状态。
-5. `frontend/vue-app/src/views`：理解页面如何调用 API 并渲染数据。
+## Contributing
 
-## 注意事项
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before
+opening a pull request.
 
-- 当前登录注册是教学用 mock 实现，不会校验账号密码，也不会签发真实 JWT。
-- `synchronize: true` 适合开发和学习，生产环境应改为迁移脚本管理数据库结构。
-- Docker 前端通过 Nginx 代理 `/api/` 到后端容器；本地开发前端通过 Vite 代理 `/api` 到 `localhost:3000`。
+## Security
+
+Please do not open public issues for security vulnerabilities. Follow the
+instructions in [SECURITY.md](SECURITY.md).
+
+## License
+
+Released under the [MIT License](LICENSE).

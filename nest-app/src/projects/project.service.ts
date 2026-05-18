@@ -5,45 +5,65 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 
+const DEFAULT_PROJECT_COLOR = '#2563eb';
+
 @Injectable()
 export class ProjectService {
   constructor(@InjectRepository(Project) private repo: Repository<Project>) {}
 
-  findAll(): Promise<Project[]> {
-    // Load tasks with each project so detail views do not need a second request.
+  findAll(ownerId: number): Promise<Project[]> {
     return this.repo.find({
+      where: { ownerId },
       relations: ['tasks'],
       order: { id: 'DESC' },
     });
   }
 
-  async create(dto: CreateProjectDto): Promise<Project> {
-    const project = this.repo.create(dto);
+  async create(ownerId: number, dto: CreateProjectDto): Promise<Project> {
+    const project = this.repo.create({
+      ownerId,
+      name: dto.name.trim(),
+      description: dto.description?.trim() || null,
+      color: dto.color || DEFAULT_PROJECT_COLOR,
+    });
+
     return this.repo.save(project) as unknown as Promise<Project>;
   }
 
-  async findOne(id: number): Promise<Project> {
+  async findOne(ownerId: number, id: number): Promise<Project> {
     const project = await this.repo.findOne({
-      where: { id },
+      where: { id, ownerId },
       relations: ['tasks'],
     });
+
     if (!project) {
-      throw new NotFoundException(`Project ${id} was not found`);
+      throw new NotFoundException(`项目 ${id} 不存在`);
     }
+
     return project;
   }
 
-  async update(id: number, dto: UpdateProjectDto): Promise<Project> {
-    // Check existence first so callers get a clear 404 instead of a silent no-op.
-    await this.findOne(id);
-    await this.repo.update(id, dto);
-    return this.findOne(id);
+  async update(
+    ownerId: number,
+    id: number,
+    dto: UpdateProjectDto,
+  ): Promise<Project> {
+    const project = await this.findOne(ownerId, id);
+
+    if (dto.name !== undefined) project.name = dto.name.trim();
+    if (dto.description !== undefined) {
+      project.description = dto.description?.trim() || null;
+    }
+    if (dto.color !== undefined) project.color = dto.color;
+
+    await this.repo.save(project);
+    return this.findOne(ownerId, id);
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.repo.delete(id);
+  async remove(ownerId: number, id: number): Promise<void> {
+    const result = await this.repo.delete({ id, ownerId });
     if (!result.affected) {
-      throw new NotFoundException(`Project ${id} was not found`);
+      throw new NotFoundException(`项目 ${id} 不存在`);
     }
   }
 }

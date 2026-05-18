@@ -1,62 +1,42 @@
-# Vue 3 前端说明
+# Nest Manager Frontend
 
-本目录是项目的前端应用，使用 Vue 3、TypeScript、Vite、Vue Router、Pinia、Element Plus 和 Axios 构建。前端通过 `/api` 统一访问 NestJS 后端。
+Vue 3 frontend for Nest Manager, built with TypeScript, Vite, Vue Router,
+Pinia, Element Plus, and Axios.
 
-## 目录结构
+The development server proxies `/api` requests to the NestJS backend so
+components can use relative API paths such as `api.get('/projects')`.
 
-```text
-src/
-├── api.ts                  # Axios 实例和请求拦截器
-├── main.ts                 # 前端应用入口
-├── router/index.ts         # 路由配置和登录守卫
-├── stores/auth.ts          # 登录状态和 token 存储
-├── components/NavBar.vue   # 顶部导航栏
-└── views/                  # 页面组件
-```
-
-## 启动方式
-
-启动前请先确保后端服务运行在 `http://localhost:3000`。
+## Scripts
 
 ```bash
 npm install
 npm run dev
+npm run typecheck
+npm run build
+npm run preview
 ```
 
-默认访问地址：
+## Routes
 
-```text
-http://localhost:5173
-```
+- `/login` - Login page
+- `/register` - Registration page
+- `/dashboard` - Project and task metrics
+- `/projects` - Project list, search, create, edit, and delete
+- `/tasks` - Task list, filters, create, edit, and delete
 
-## 请求代理
+## Development
 
-开发环境下，`vite.config.ts` 会把所有 `/api` 请求代理到：
-
-```text
-http://localhost:3000
-```
-
-因此页面中只需要调用类似 `api.get('/projects')` 的相对路径，最终会请求后端的 `/api/projects`，不需要在组件里硬编码后端地址。
-
-## 页面说明
-
-- `/login`：登录页面，调用 `/api/auth/login`。
-- `/register`：注册页面，调用 `/api/auth/register`。
-- `/dashboard`：仪表盘页面。
-- `/projects`：项目列表、搜索、新建、编辑、删除和详情查看。
-- `/tasks`：任务列表、状态筛选、项目筛选、新建、编辑和删除。
-
-## 常用命令
+Start the backend at `http://localhost:3000`, then run:
 
 ```bash
-npm run dev      # 开发模式
-npm run build    # 生产构建
-npm run preview  # 预览构建产物
+npm run dev
 ```
 
-## 开发提示
+The frontend is available at `http://localhost:5173`.
 
-- 登录 token 存在 `localStorage` 中，并由 `src/api.ts` 自动加到请求头。
-- 需要登录的页面在 `src/router/index.ts` 中通过 `meta.requiresAuth` 标记。
-- UI 组件来自 Element Plus，页面逻辑主要在 `src/views` 中。
+The backend seed creates a demo login:
+
+```text
+Email: demo@example.com
+Password: password123
+```

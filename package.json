@@ -1,0 +1,28 @@
+{
+  "name": "nest-manager",
+  "version": "0.1.0",
+  "description": "Full-stack project and task management app built with NestJS and Vue.",
+  "private": true,
+  "license": "MIT",
+  "author": "zayyo123",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zayyo123/Nest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zayyo123/Nest/issues"
+  },
+  "homepage": "https://github.com/zayyo123/Nest#readme",
+  "scripts": {
+    "backend:build": "npm --prefix nest-app run build",
+    "backend:test": "npm --prefix nest-app run test",
+    "backend:test:e2e": "npm --prefix nest-app run test:e2e",
+    "frontend:typecheck": "npm --prefix frontend/vue-app run typecheck",
+    "frontend:build": "npm --prefix frontend/vue-app run build",
+    "check": "npm run backend:build && npm run backend:test && npm run backend:test:e2e && npm run frontend:typecheck && npm run frontend:build"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  }
+}

@@ -1,10 +1,21 @@
 {
   "name": "vue-app",
   "version": "0.1.0",
+  "description": "Vue 3 frontend for Nest Manager.",
   "private": true,
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zayyo123/Nest.git",
+    "directory": "frontend/vue-app"
+  },
+  "bugs": {
+    "url": "https://github.com/zayyo123/Nest/issues"
+  },
   "scripts": {
     "dev": "vite",
+    "typecheck": "vue-tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview --port 5173"
   },
