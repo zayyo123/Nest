@@ -138,7 +138,7 @@
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
-          :total="filteredTasks.length"
+          :total="sortedTasks.length"
           layout="prev, pager, next, total"
         />
       </template>
@@ -403,7 +403,22 @@ export default defineComponent({
 
     const pagedTasks = computed(() => {
       const start = (currentPage.value - 1) * pageSize
-      return filteredTasks.value.slice(start, start + pageSize)
+      return sortedTasks.value.slice(start, start + pageSize)
+    })
+
+    const sortedTasks = computed(() => {
+      return filteredTasks.value.slice().sort((a, b) => {
+        const statusDiff = statusSortWeight(a.status) - statusSortWeight(b.status)
+        if (statusDiff) return statusDiff
+
+        const dueDiff = dueSortWeight(a) - dueSortWeight(b)
+        if (dueDiff) return dueDiff
+
+        const priorityDiff = prioritySortWeight(a.priority) - prioritySortWeight(b.priority)
+        if (priorityDiff) return priorityDiff
+
+        return b.id - a.id
+      })
     })
 
     const boardColumns = computed(() => {
@@ -413,7 +428,7 @@ export default defineComponent({
         { status: 'DONE', title: '已完成', tasks: [] },
       ]
       columns.forEach((column) => {
-        column.tasks = filteredTasks.value.filter((task) => task.status === column.status)
+        column.tasks = sortedTasks.value.filter((task) => task.status === column.status)
       })
       return columns
     })
@@ -445,6 +460,22 @@ export default defineComponent({
     const priorityType = (priority: TaskPriority) => {
       const types = { LOW: 'info', MEDIUM: '', HIGH: 'danger' } as const
       return types[priority]
+    }
+
+    const statusSortWeight = (status: TaskStatus) => {
+      const weights = { IN_PROGRESS: 0, TODO: 1, DONE: 2 }
+      return weights[status]
+    }
+
+    const prioritySortWeight = (priority: TaskPriority) => {
+      const weights = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+      return weights[priority]
+    }
+
+    const dueSortWeight = (task: Task) => {
+      if (!task.dueDate) return Number.MAX_SAFE_INTEGER
+      if (task.status === 'DONE') return Number.MAX_SAFE_INTEGER - 1
+      return new Date(task.dueDate).getTime()
     }
 
     const isOverdue = (task: Task) => Boolean(task.dueDate && task.status !== 'DONE' && task.dueDate < todayString())
@@ -491,6 +522,7 @@ export default defineComponent({
       saveTask,
       saving,
       setDueFilter,
+      sortedTasks,
       statusText,
       statusType,
       statusActions,
