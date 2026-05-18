@@ -6,12 +6,14 @@ import { SeedService } from './seed/seed.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Keep all REST endpoints under /api so the frontend can proxy one path.
   app.setGlobalPrefix('api');
   app.enableCors({
     origin: process.env.CORS_ORIGIN?.split(',') ?? true,
     credentials: true,
   });
 
+  // Swagger stays outside the /api prefix for a short, memorable docs URL.
   const config = new DocumentBuilder()
     .setTitle('Nest Project Manager API')
     .setDescription('Project and task management API documentation.')

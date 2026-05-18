@@ -4,13 +4,15 @@ import { Controller, Post, Body } from '@nestjs/common';
 export class AuthController {
   @Post('register')
   register(@Body() dto: any) {
-    // Simple mock response with a token for teaching/demo purposes
+    void dto;
+    // Teaching demo only: replace this with user persistence and JWT signing in real auth.
     return { accessToken: 'dummy-token' };
   }
 
   @Post('login')
   login(@Body() dto: any) {
-    // Simple mock response with a token for teaching/demo purposes
+    void dto;
+    // The frontend only needs a token-shaped value to exercise protected routes.
     return { accessToken: 'dummy-token' };
   }
 }

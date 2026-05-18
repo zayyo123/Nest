@@ -11,6 +11,7 @@ import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
+    // Configure TypeORM once, then feature modules register their own repositories.
     TypeOrmModule.forRoot(databaseOptions),
     AuthModule,
     ProjectsModule,

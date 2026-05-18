@@ -2,5 +2,5 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
-  // Placeholder for potential future JWT/auth logic
+  // Placeholder for future password validation, user lookup, and JWT generation.
 }
