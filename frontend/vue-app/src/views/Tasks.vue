@@ -55,6 +55,17 @@
               <span :class="{ 'danger-text': isOverdue(task) }">{{ formatDueDate(task.dueDate) }}</span>
             </div>
             <div class="task-card-actions">
+              <el-button
+                v-for="action in statusActions(task)"
+                :key="action.status"
+                size="small"
+                :type="action.type"
+                plain
+                :loading="updatingTaskId === task.id"
+                @click="updateTaskStatus(task, action.status)"
+              >
+                {{ action.label }}
+              </el-button>
               <el-button size="small" @click="openEdit(task)">编辑</el-button>
               <el-button size="small" type="danger" plain @click="remove(task)">删除</el-button>
             </div>
@@ -91,8 +102,19 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="210" fixed="right">
+          <el-table-column label="操作" width="320" fixed="right">
             <template #default="{ row }">
+              <el-button
+                v-for="action in statusActions(row)"
+                :key="action.status"
+                size="small"
+                :type="action.type"
+                plain
+                :loading="updatingTaskId === row.id"
+                @click="updateTaskStatus(row, action.status)"
+              >
+                {{ action.label }}
+              </el-button>
               <el-button size="small" @click="openEdit(row)">编辑</el-button>
               <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
             </template>
@@ -182,6 +204,7 @@ export default defineComponent({
     const projects = ref<Project[]>([])
     const loading = ref(false)
     const saving = ref(false)
+    const updatingTaskId = ref<number | null>(null)
     const viewMode = ref<'board' | 'table'>('board')
     const currentPage = ref(1)
     const pageSize = 8
@@ -309,6 +332,34 @@ export default defineComponent({
       }
     }
 
+    const statusActions = (task: Task) => {
+      if (task.status === 'TODO') {
+        return [{ label: '开始', status: 'IN_PROGRESS' as TaskStatus, type: 'warning' as const }]
+      }
+
+      if (task.status === 'IN_PROGRESS') {
+        return [{ label: '完成', status: 'DONE' as TaskStatus, type: 'success' as const }]
+      }
+
+      return [{ label: '重开', status: 'TODO' as TaskStatus, type: 'info' as const }]
+    }
+
+    const updateTaskStatus = async (task: Task, status: TaskStatus) => {
+      if (task.status === status || updatingTaskId.value) return
+
+      updatingTaskId.value = task.id
+      try {
+        const res = await api.put<Task>(`/tasks/${task.id}`, { status })
+        const index = tasks.value.findIndex((item) => item.id === task.id)
+        if (index >= 0) tasks.value[index] = res.data
+        ElMessage.success(`任务已更新为${statusText(status)}`)
+      } catch (err) {
+        ElMessage.error(getApiErrorMessage(err, '无法更新任务状态'))
+      } finally {
+        updatingTaskId.value = null
+      }
+    }
+
     const filteredTasks = computed(() => {
       const q = filters.q.trim().toLowerCase()
 
@@ -395,6 +446,9 @@ export default defineComponent({
       saving,
       statusText,
       statusType,
+      statusActions,
+      updateTaskStatus,
+      updatingTaskId,
       viewMode,
     }
   },
