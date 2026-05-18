@@ -14,22 +14,22 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { computed, defineComponent } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
 export default defineComponent({
-  name: 'NavBar',
+  name: "NavBar",
   setup() {
-    const router = useRouter()
-    const auth = useAuthStore()
-    const isLoggedIn = computed(() => auth.isLoggedIn)
+    const router = useRouter();
+    const auth = useAuthStore();
+    const isLoggedIn = computed(() => auth.isLoggedIn);
     const logout = () => {
-      auth.logout()
-      router.push('/login')
-    }
+      auth.logout();
+      router.push("/login");
+    };
 
-    return { isLoggedIn, logout }
+    return { isLoggedIn, logout };
   },
-})
+});
 </script>

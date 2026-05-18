@@ -10,6 +10,7 @@ export class ProjectService {
   constructor(@InjectRepository(Project) private repo: Repository<Project>) {}
 
   findAll(): Promise<Project[]> {
+    // Load tasks with each project so detail views do not need a second request.
     return this.repo.find({
       relations: ['tasks'],
       order: { id: 'DESC' },
@@ -22,7 +23,10 @@ export class ProjectService {
   }
 
   async findOne(id: number): Promise<Project> {
-    const project = await this.repo.findOne({ where: { id }, relations: ['tasks'] });
+    const project = await this.repo.findOne({
+      where: { id },
+      relations: ['tasks'],
+    });
     if (!project) {
       throw new NotFoundException(`Project ${id} was not found`);
     }
@@ -30,6 +34,7 @@ export class ProjectService {
   }
 
   async update(id: number, dto: UpdateProjectDto): Promise<Project> {
+    // Check existence first so callers get a clear 404 instead of a silent no-op.
     await this.findOne(id);
     await this.repo.update(id, dto);
     return this.findOne(id);

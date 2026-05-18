@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
 
 export enum TaskStatus {
@@ -18,12 +24,13 @@ export class Task {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.TODO })
+  @Column({ type: 'simple-enum', enum: TaskStatus, default: TaskStatus.TODO })
   status: TaskStatus;
 
   @Column({ nullable: true })
   projectId?: number;
 
+  // Deleting a project keeps the task history and simply clears the association.
   @ManyToOne(() => Project, (project) => project.tasks, {
     nullable: true,
     onDelete: 'SET NULL',

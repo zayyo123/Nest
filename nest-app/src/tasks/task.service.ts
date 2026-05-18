@@ -14,6 +14,7 @@ export class TaskService {
   ) {}
 
   findAll(): Promise<Task[]> {
+    // Load the owning project so task rows can show project names in the UI.
     return this.repo.find({
       relations: ['project'],
       order: { id: 'DESC' },
@@ -21,6 +22,7 @@ export class TaskService {
   }
 
   async create(dto: CreateTaskDto): Promise<Task> {
+    // Create scalar fields first; the project relation is resolved explicitly below.
     const task = this.repo.create({
       title: dto.title,
       description: dto.description,
@@ -35,7 +37,10 @@ export class TaskService {
   }
 
   async findOne(id: number): Promise<Task> {
-    const task = await this.repo.findOne({ where: { id }, relations: ['project'] });
+    const task = await this.repo.findOne({
+      where: { id },
+      relations: ['project'],
+    });
     if (!task) {
       throw new NotFoundException(`Task ${id} was not found`);
     }
@@ -49,7 +54,9 @@ export class TaskService {
     if (dto.description !== undefined) task.description = dto.description;
     if (dto.status !== undefined) task.status = dto.status;
     if (dto.projectId !== undefined) {
-      task.project = dto.projectId ? await this.findProject(dto.projectId) : null;
+      task.project = dto.projectId
+        ? await this.findProject(dto.projectId)
+        : null;
       task.projectId = dto.projectId || null;
     }
 
@@ -65,7 +72,10 @@ export class TaskService {
   }
 
   private async findProject(projectId: number): Promise<Project> {
-    const project = await this.projectRepo.findOne({ where: { id: Number(projectId) } });
+    // Keep project lookup in one place so create/update share the same 404 behavior.
+    const project = await this.projectRepo.findOne({
+      where: { id: Number(projectId) },
+    });
     if (!project) {
       throw new NotFoundException(`Project ${projectId} was not found`);
     }

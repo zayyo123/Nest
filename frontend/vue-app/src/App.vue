@@ -1,14 +1,16 @@
 <template>
-  <el-container>
-    <el-header><NavBar /></el-header>
-    <el-main class="container"><router-view /></el-main>
+  <el-container class="app-shell">
+    <el-header class="app-header"><NavBar /></el-header>
+    <el-main class="app-main"><router-view /></el-main>
   </el-container>
-  </template>
+</template>
+
 <script lang="ts">
-import { defineComponent } from 'vue'
-import NavBar from './components/NavBar.vue'
-export default defineComponent({ components: { NavBar } })
+import { defineComponent } from "vue";
+import NavBar from "./components/NavBar.vue";
+
+export default defineComponent({
+  name: "App",
+  components: { NavBar },
+});
 </script>
-<style scoped>
-.container { padding: 20px; max-width: 1200px; margin: 0 auto; }
-</style>

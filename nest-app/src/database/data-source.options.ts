@@ -6,19 +6,28 @@ const toNumber = (value: string | undefined, fallback: number) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-// Centralized TypeORM config. Docker and local development share the same
-// defaults, while environment variables can override each value when deployed.
-export const databaseOptions: TypeOrmModuleOptions = {
-  type: 'mysql',
-  host: process.env.DB_HOST || 'localhost',
-  port: toNumber(process.env.DB_PORT, 3306),
-  username: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'root',
-  database: process.env.DB_DATABASE || 'nestlearn',
+const commonOptions = {
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   // Convenient for learning; production deployments should use migrations.
   synchronize: process.env.DB_SYNCHRONIZE !== 'false',
   autoLoadEntities: true,
-  retryAttempts: toNumber(process.env.DB_RETRY_ATTEMPTS, 10),
-  retryDelay: toNumber(process.env.DB_RETRY_DELAY, 3000),
 };
+
+export const databaseOptions: TypeOrmModuleOptions = process.env.DB_HOST
+  ? {
+      ...commonOptions,
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: toNumber(process.env.DB_PORT, 3306),
+      username: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || 'root',
+      database: process.env.DB_DATABASE || 'nestlearn',
+      retryAttempts: toNumber(process.env.DB_RETRY_ATTEMPTS, 10),
+      retryDelay: toNumber(process.env.DB_RETRY_DELAY, 3000),
+    }
+  : {
+      ...commonOptions,
+      type: 'sqljs',
+      autoSave: false,
+      location: process.env.DB_DATABASE || 'nestlearn.db',
+    };

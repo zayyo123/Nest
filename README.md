@@ -26,7 +26,7 @@
 - 项目 CRUD：创建、查询、更新、删除项目。
 - 任务 CRUD：创建、查询、更新、删除任务，并可关联到项目。
 - Swagger API 文档：后端启动后访问 `http://localhost:3000/docs`。
-- 健康检查接口：`GET /health`。
+- 健康检查接口：`GET /api/health`。
 
 ## 本地开发
 
