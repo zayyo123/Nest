@@ -33,6 +33,20 @@
         </el-select>
       </div>
 
+      <div class="quick-filter-row" aria-label="任务时间筛选">
+        <button
+          v-for="option in dueFilterOptions"
+          :key="option.value || 'all'"
+          type="button"
+          class="quick-filter-chip"
+          :class="{ active: filters.due === option.value }"
+          @click="setDueFilter(option.value)"
+        >
+          <span>{{ option.label }}</span>
+          <strong>{{ dueFilterCount(option.value) }}</strong>
+        </button>
+      </div>
+
       <div v-if="viewMode === 'board'" v-loading="loading" class="board-grid">
         <section v-for="column in boardColumns" :key="column.status" class="board-column">
           <div class="board-column-header">
@@ -182,6 +196,7 @@ import api, { getApiErrorMessage } from '@/api'
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
+type DueFilter = '' | 'today' | 'week' | 'overdue'
 type Project = { id: number; name: string; color?: string }
 type Task = {
   id: number
@@ -196,6 +211,17 @@ type Task = {
 
 const defaultColor = '#2563eb'
 const todayString = () => new Date().toISOString().slice(0, 10)
+const addDaysString = (days: number) => {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+const dueFilterOptions: Array<{ value: DueFilter; label: string }> = [
+  { value: '', label: '全部' },
+  { value: 'today', label: '今天' },
+  { value: 'week', label: '7 天内' },
+  { value: 'overdue', label: '已逾期' },
+]
 
 export default defineComponent({
   name: 'Tasks',
@@ -213,11 +239,13 @@ export default defineComponent({
       status: '' | TaskStatus
       priority: '' | TaskPriority
       projectId: number | ''
+      due: DueFilter
     }>({
       q: '',
       status: '',
       priority: '',
       projectId: '',
+      due: '',
     })
     const dialogVisible = ref(false)
     const dialogTitle = ref('新建任务')
@@ -368,7 +396,8 @@ export default defineComponent({
         const statusMatch = !filters.status || task.status === filters.status
         const priorityMatch = !filters.priority || task.priority === filters.priority
         const projectMatch = !filters.projectId || (task.project?.id || task.projectId) === filters.projectId
-        return textMatch && statusMatch && priorityMatch && projectMatch
+        const dueMatch = matchesDueFilter(task, filters.due)
+        return textMatch && statusMatch && priorityMatch && projectMatch && dueMatch
       })
     })
 
@@ -393,6 +422,11 @@ export default defineComponent({
       currentPage.value = 1
     }
 
+    const setDueFilter = (value: DueFilter) => {
+      filters.due = value
+      resetPage()
+    }
+
     const statusText = (status: TaskStatus) => {
       const labels = { TODO: '待办', IN_PROGRESS: '进行中', DONE: '已完成' }
       return labels[status]
@@ -414,6 +448,16 @@ export default defineComponent({
     }
 
     const isOverdue = (task: Task) => Boolean(task.dueDate && task.status !== 'DONE' && task.dueDate < todayString())
+    const matchesDueFilter = (task: Task, due: DueFilter) => {
+      if (!due) return true
+      if (!task.dueDate) return false
+
+      const today = todayString()
+      if (due === 'overdue') return task.status !== 'DONE' && task.dueDate < today
+      if (due === 'today') return task.dueDate === today
+      return task.status !== 'DONE' && task.dueDate >= today && task.dueDate <= addDaysString(7)
+    }
+    const dueFilterCount = (value: DueFilter) => tasks.value.filter((task) => matchesDueFilter(task, value)).length
     const formatDueDate = (dueDate?: string | null) => dueDate || '无截止日期'
 
     onMounted(async () => {
@@ -427,6 +471,8 @@ export default defineComponent({
       defaultColor,
       dialogTitle,
       dialogVisible,
+      dueFilterCount,
+      dueFilterOptions,
       editForm,
       filteredTasks,
       filters,
@@ -444,6 +490,7 @@ export default defineComponent({
       resetPage,
       saveTask,
       saving,
+      setDueFilter,
       statusText,
       statusType,
       statusActions,

@@ -209,6 +209,48 @@ a {
   width: 180px;
 }
 
+.quick-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.quick-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.quick-filter-chip strong {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: var(--text);
+  text-align: center;
+}
+
+.quick-filter-chip.active {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: #eaf1ff;
+  color: var(--primary);
+}
+
+.quick-filter-chip.active strong {
+  background: var(--primary);
+  color: #fff;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
