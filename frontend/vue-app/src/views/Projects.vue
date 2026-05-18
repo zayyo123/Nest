@@ -11,8 +11,8 @@
 
     <section class="panel">
       <div class="toolbar toolbar-wrap">
-        <el-input v-model="filters.q" placeholder="搜索项目" clearable @input="resetPage" />
-        <el-select v-model="filters.sort" placeholder="排序" @change="resetPage">
+        <el-input v-model="filters.q" placeholder="搜索项目" clearable @input="syncFiltersToRoute" />
+        <el-select v-model="filters.sort" placeholder="排序" @change="syncFiltersToRoute">
           <el-option label="最近创建" value="recent" />
           <el-option label="名称 A-Z" value="name" />
           <el-option label="任务最多" value="tasks" />
@@ -90,8 +90,8 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import api, { getApiErrorMessage } from '@/api'
 
@@ -108,10 +108,12 @@ type Project = {
 
 const defaultColor = '#2563eb'
 const colorOptions = ['#2563eb', '#0f766e', '#7c3aed', '#db2777', '#ea580c', '#475569']
+const projectSortOptions: ProjectSort[] = ['recent', 'name', 'tasks', 'completion', 'active']
 
 export default defineComponent({
   name: 'Projects',
   setup() {
+    const route = useRoute()
     const router = useRouter()
     const projects = ref<Project[]>([])
     const loading = ref(false)
@@ -134,6 +136,24 @@ export default defineComponent({
       } finally {
         loading.value = false
       }
+    }
+
+    const applyRouteFilters = () => {
+      const q = route.query.q
+      const sort = route.query.sort
+
+      filters.q = ''
+      filters.sort = 'recent'
+
+      if (typeof q === 'string') {
+        filters.q = q
+      }
+
+      if (typeof sort === 'string' && projectSortOptions.includes(sort as ProjectSort)) {
+        filters.sort = sort as ProjectSort
+      }
+
+      resetPage()
     }
 
     const resetForm = () => {
@@ -234,6 +254,24 @@ export default defineComponent({
       currentPage.value = 1
     }
 
+    const syncFiltersToRoute = () => {
+      resetPage()
+
+      const query: Record<string, string> = {}
+      if (filters.q.trim()) query.q = filters.q.trim()
+      if (filters.sort !== 'recent') query.sort = filters.sort
+
+      const current = Object.fromEntries(
+        Object.entries(route.query)
+          .filter(([, value]) => typeof value === 'string')
+          .map(([key, value]) => [key, value as string]),
+      )
+
+      if (JSON.stringify(current) !== JSON.stringify(query)) {
+        void router.replace({ path: '/projects', query })
+      }
+    }
+
     const projectDoneCount = (project: Project) => project.tasks?.filter((task) => task.status === 'DONE').length || 0
     const projectActiveCount = (project: Project) => project.tasks?.filter((task) => task.status !== 'DONE').length || 0
     const projectTaskCount = (project: Project) => project.tasks?.length || 0
@@ -243,7 +281,12 @@ export default defineComponent({
       return Math.round((projectDoneCount(project) / total) * 100)
     }
 
-    onMounted(fetchProjects)
+    onMounted(async () => {
+      applyRouteFilters()
+      await fetchProjects()
+    })
+
+    watch(() => route.query, applyRouteFilters)
 
     return {
       colorOptions,
@@ -267,6 +310,7 @@ export default defineComponent({
       saveProject,
       saving,
       sortedProjects,
+      syncFiltersToRoute,
       viewProject,
     }
   },
