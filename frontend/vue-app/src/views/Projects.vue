@@ -10,8 +10,15 @@
     </div>
 
     <section class="panel">
-      <div class="toolbar">
+      <div class="toolbar toolbar-wrap">
         <el-input v-model="filters.q" placeholder="搜索项目" clearable @input="resetPage" />
+        <el-select v-model="filters.sort" placeholder="排序" @change="resetPage">
+          <el-option label="最近创建" value="recent" />
+          <el-option label="名称 A-Z" value="name" />
+          <el-option label="任务最多" value="tasks" />
+          <el-option label="完成度最高" value="completion" />
+          <el-option label="进行中最多" value="active" />
+        </el-select>
       </div>
 
       <div v-loading="loading" class="project-card-grid">
@@ -45,7 +52,7 @@
       <el-pagination
         v-model:current-page="currentPage"
         :page-size="pageSize"
-        :total="filteredProjects.length"
+        :total="sortedProjects.length"
         layout="prev, pager, next, total"
       />
     </section>
@@ -90,6 +97,7 @@ import api, { getApiErrorMessage } from '@/api'
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
 type Task = { id: number; status?: TaskStatus }
+type ProjectSort = 'recent' | 'name' | 'tasks' | 'completion' | 'active'
 type Project = {
   id: number
   name: string
@@ -110,7 +118,7 @@ export default defineComponent({
     const saving = ref(false)
     const currentPage = ref(1)
     const pageSize = 6
-    const filters = reactive({ q: '' })
+    const filters = reactive<{ q: string; sort: ProjectSort }>({ q: '', sort: 'recent' })
     const dialogVisible = ref(false)
     const dialogTitle = ref('新建项目')
     const editForm = reactive({ name: '', description: '', color: defaultColor })
@@ -209,7 +217,17 @@ export default defineComponent({
 
     const pagedProjects = computed(() => {
       const start = (currentPage.value - 1) * pageSize
-      return filteredProjects.value.slice(start, start + pageSize)
+      return sortedProjects.value.slice(start, start + pageSize)
+    })
+
+    const sortedProjects = computed(() => {
+      return filteredProjects.value.slice().sort((a, b) => {
+        if (filters.sort === 'name') return a.name.localeCompare(b.name)
+        if (filters.sort === 'tasks') return projectTaskCount(b) - projectTaskCount(a) || b.id - a.id
+        if (filters.sort === 'completion') return projectCompletion(b) - projectCompletion(a) || b.id - a.id
+        if (filters.sort === 'active') return projectActiveCount(b) - projectActiveCount(a) || b.id - a.id
+        return b.id - a.id
+      })
     })
 
     const resetPage = () => {
@@ -218,8 +236,9 @@ export default defineComponent({
 
     const projectDoneCount = (project: Project) => project.tasks?.filter((task) => task.status === 'DONE').length || 0
     const projectActiveCount = (project: Project) => project.tasks?.filter((task) => task.status !== 'DONE').length || 0
+    const projectTaskCount = (project: Project) => project.tasks?.length || 0
     const projectCompletion = (project: Project) => {
-      const total = project.tasks?.length || 0
+      const total = projectTaskCount(project)
       if (!total) return 0
       return Math.round((projectDoneCount(project) / total) * 100)
     }
@@ -247,6 +266,7 @@ export default defineComponent({
       resetPage,
       saveProject,
       saving,
+      sortedProjects,
       viewProject,
     }
   },
