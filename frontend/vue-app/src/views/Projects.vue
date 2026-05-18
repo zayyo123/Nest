@@ -1,85 +1,87 @@
 <template>
-  <!-- 项目列表主卡片 -->
-  <div class="card">
-    <!-- 工具栏：搜索框和新建按钮 -->
-    <div class="toolbar" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <el-input placeholder="搜索项目" v-model="filters.q" size="small" style="width:300px" @input="onFilter" />
+  <section class="page-stack">
+    <div class="page-header">
+      <div>
+        <h1>项目</h1>
+        <p>维护项目资料，并查看每个项目关联的任务数量。</p>
+      </div>
       <el-button type="primary" @click="openCreate">新建项目</el-button>
     </div>
-    <!-- 项目数据表格 -->
-    <el-table :data="pagedProjects" style="width:100%" v-loading="loading">
-      <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" label="名称" />
-      <el-table-column prop="description" label="描述" />
-      <!-- 操作列：编辑、删除、详情 -->
-      <el-table-column label="操作" width="260">
-        <template #default="scope">
-          <el-button size="mini" @click="openEdit(scope.row)">编辑</el-button>
-          <el-button size="mini" type="danger" @click="remove(scope.row.id)">删除</el-button>
-          <el-button size="mini" @click="viewDetails(scope.row)">详情</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- 分页组件 -->
-    <el-pagination @current-change="handlePageChange" :current-page="currentPage" :page-size="pageSize" :total="filteredProjects.length" layout="prev, pager, next, total"></el-pagination>
-  </div>
 
-  <!-- 新建/编辑项目对话框 -->
-  <el-dialog :title="dialogTitle" :visible.sync="dialogVisible">
-    <el-form :model="editForm" label-width="120px">
-      <el-form-item label="名称">
-        <el-input v-model="editForm.name"></el-input>
-      </el-form-item>
-      <el-form-item label="描述">
-        <el-input v-model="editForm.description"></el-input>
-      </el-form-item>
-    </el-form>
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" @click="saveProject">保存</el-button>
-    </span>
-  </el-dialog>
+    <section class="panel">
+      <div class="toolbar">
+        <el-input v-model="filters.q" placeholder="搜索项目名称或描述" clearable @input="resetPage" />
+      </div>
 
-  <!-- 项目详情抽屉 -->
-  <el-drawer title="详情" :visible.sync="detailsVisible" size="40%">
-    <div v-if="selectedProject">
-      <p><strong>ID:</strong> {{ selectedProject.id }}</p>
-      <p><strong>名称:</strong> {{ selectedProject.name }}</p>
-      <p><strong>描述:</strong> {{ selectedProject.description }}</p>
-    </div>
-  </el-drawer>
+      <el-table :data="pagedProjects" v-loading="loading" empty-text="暂无项目">
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="name" label="名称" min-width="180" />
+        <el-table-column prop="description" label="描述" min-width="240">
+          <template #default="{ row }">{{ row.description || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="任务数" width="100">
+          <template #default="{ row }">{{ row.tasks?.length || 0 }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="210" fixed="right">
+          <template #default="{ row }">
+            <el-button size="small" @click="openEdit(row)">编辑</el-button>
+            <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        :total="filteredProjects.length"
+        layout="prev, pager, next, total"
+      />
+    </section>
+
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="520px">
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="名称" required>
+          <el-input v-model="editForm.name" maxlength="60" show-word-limit />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="editForm.description" type="textarea" :rows="4" maxlength="200" show-word-limit />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="saveProject">保存</el-button>
+      </template>
+    </el-dialog>
+  </section>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref, computed, onMounted } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '@/api'
-import { ElMessage } from 'element-plus'
 
-// 项目类型定义
-type Project = { id: number; name: string; description?: string }
+type Task = { id: number }
+type Project = { id: number; name: string; description?: string; tasks?: Task[] }
 
 export default defineComponent({
   name: 'Projects',
   setup() {
-    // 响应式状态定义
-    const projects = ref<Project[]>([]) // 项目列表
-    const loading = ref(false) // 加载状态
-    const currentPage = ref(1) // 当前页码
-    const pageSize = 5 // 每页显示数量
-    const filters = reactive({ q: '' }) // 搜索过滤条件
-    const dialogVisible = ref(false) // 对话框显示状态
-    const detailsVisible = ref(false) // 详情抽屉显示状态
-    const dialogTitle = ref('创建项目') // 对话框标题
-    const editForm = reactive({ name: '', description: '' }) // 编辑表单数据
-    const editingId = ref<number | null>(null) // 正在编辑的项目ID
-    const selectedProject = ref<Project | null>(null) // 选中的项目
+    const projects = ref<Project[]>([])
+    const loading = ref(false)
+    const saving = ref(false)
+    const currentPage = ref(1)
+    const pageSize = 8
+    const filters = reactive({ q: '' })
+    const dialogVisible = ref(false)
+    const dialogTitle = ref('新建项目')
+    const editForm = reactive({ name: '', description: '' })
+    const editingId = ref<number | null>(null)
 
-    // 获取项目列表
     const fetchProjects = async () => {
       loading.value = true
       try {
         const res = await api.get('/projects')
-        projects.value = res.data as Project[]
+        projects.value = res.data
       } catch {
         ElMessage.error('获取项目失败')
       } finally {
@@ -87,74 +89,99 @@ export default defineComponent({
       }
     }
 
-    // 打开新建项目对话框
-    const openCreate = () => {
-      editingId.value = null
+    const resetForm = () => {
       editForm.name = ''
       editForm.description = ''
-      dialogTitle.value = '创建项目'
+      editingId.value = null
+    }
+
+    const openCreate = () => {
+      resetForm()
+      dialogTitle.value = '新建项目'
       dialogVisible.value = true
     }
 
-    // 打开编辑项目对话框
-    const openEdit = (p: Project) => {
-      editingId.value = p.id
-      editForm.name = p.name
-      editForm.description = p.description ?? ''
+    const openEdit = (project: Project) => {
+      editingId.value = project.id
+      editForm.name = project.name
+      editForm.description = project.description || ''
       dialogTitle.value = '编辑项目'
       dialogVisible.value = true
     }
 
-    // 保存项目（新建或更新）
     const saveProject = async () => {
-      if (editingId.value) {
-        await api.put(`/projects/${editingId.value}`, { name: editForm.name, description: editForm.description })
-      } else {
-        await api.post('/projects', { name: editForm.name, description: editForm.description })
+      if (!editForm.name.trim()) {
+        ElMessage.warning('请输入项目名称')
+        return
       }
-      dialogVisible.value = false
-      await fetchProjects()
+
+      saving.value = true
+      try {
+        const payload = { name: editForm.name.trim(), description: editForm.description.trim() }
+        if (editingId.value) {
+          await api.put(`/projects/${editingId.value}`, payload)
+          ElMessage.success('项目已更新')
+        } else {
+          await api.post('/projects', payload)
+          ElMessage.success('项目已创建')
+        }
+        dialogVisible.value = false
+        await fetchProjects()
+      } catch {
+        ElMessage.error('保存项目失败')
+      } finally {
+        saving.value = false
+      }
     }
 
-    // 删除项目
-    const remove = async (id: number) => {
-      await api.delete(`/projects/${id}`)
-      await fetchProjects()
+    const remove = async (project: Project) => {
+      try {
+        await ElMessageBox.confirm(`确定删除项目“${project.name}”吗？`, '删除确认', { type: 'warning' })
+        await api.delete(`/projects/${project.id}`)
+        ElMessage.success('项目已删除')
+        await fetchProjects()
+      } catch (error) {
+        if (error !== 'cancel') ElMessage.error('删除项目失败')
+      }
     }
 
-    // 查看项目详情
-    const viewDetails = (p: Project) => {
-      selectedProject.value = p
-      detailsVisible.value = true
-    }
-
-    // 过滤后的项目列表（计算属性）
     const filteredProjects = computed(() => {
-      const q = filters.q.toLowerCase()
+      const q = filters.q.trim().toLowerCase()
       if (!q) return projects.value
-      return projects.value.filter(p => p.name.toLowerCase().includes(q) || (p.description ?? '').toLowerCase().includes(q))
+      return projects.value.filter((project) => {
+        return `${project.name} ${project.description || ''}`.toLowerCase().includes(q)
+      })
     })
 
-    // 分页后的项目列表（计算属性）
     const pagedProjects = computed(() => {
       const start = (currentPage.value - 1) * pageSize
       return filteredProjects.value.slice(start, start + pageSize)
     })
 
-    // 处理页码变化
-    const handlePageChange = (page: number) => { currentPage.value = page }
+    const resetPage = () => {
+      currentPage.value = 1
+    }
 
-    // 处理搜索过滤
-    const onFilter = () => { currentPage.value = 1 }
-
-    // 组件挂载时获取项目列表
     onMounted(fetchProjects)
 
     return {
-      loading, currentPage, pageSize, filters, dialogVisible, detailsVisible, dialogTitle,
-      editForm, editingId, selectedProject, fetchProjects, openCreate, openEdit, saveProject, remove,
-      viewDetails, pagedProjects, filteredProjects, handlePageChange, onFilter
+      projects,
+      loading,
+      saving,
+      currentPage,
+      pageSize,
+      filters,
+      dialogVisible,
+      dialogTitle,
+      editForm,
+      filteredProjects,
+      pagedProjects,
+      openCreate,
+      openEdit,
+      saveProject,
+      remove,
+      resetPage,
     }
-  }
+  },
 })
 </script>

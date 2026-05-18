@@ -6,6 +6,8 @@ const toNumber = (value: string | undefined, fallback: number) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+// Centralized TypeORM config. Docker and local development share the same
+// defaults, while environment variables can override each value when deployed.
 export const databaseOptions: TypeOrmModuleOptions = {
   type: 'mysql',
   host: process.env.DB_HOST || 'localhost',
@@ -14,6 +16,7 @@ export const databaseOptions: TypeOrmModuleOptions = {
   password: process.env.DB_PASSWORD || 'root',
   database: process.env.DB_DATABASE || 'nestlearn',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  // Convenient for learning; production deployments should use migrations.
   synchronize: process.env.DB_SYNCHRONIZE !== 'false',
   autoLoadEntities: true,
   retryAttempts: toNumber(process.env.DB_RETRY_ATTEMPTS, 10),

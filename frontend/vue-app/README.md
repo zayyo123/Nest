@@ -37,12 +37,12 @@ http://localhost:5173
 http://localhost:3000
 ```
 
-因此页面中只需要调用类似 `api.get('/projects')` 的相对路径，不需要在组件里硬编码后端地址。
+因此页面中只需要调用类似 `api.get('/projects')` 的相对路径，最终会请求后端的 `/api/projects`，不需要在组件里硬编码后端地址。
 
 ## 页面说明
 
-- `/login`：登录页面，调用 `/auth/login`。
-- `/register`：注册页面，调用 `/auth/register`。
+- `/login`：登录页面，调用 `/api/auth/login`。
+- `/register`：注册页面，调用 `/api/auth/register`。
 - `/dashboard`：仪表盘页面。
 - `/projects`：项目列表、搜索、新建、编辑、删除和详情查看。
 - `/tasks`：任务列表、状态筛选、项目筛选、新建、编辑和删除。

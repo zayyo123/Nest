@@ -40,7 +40,7 @@ npm run start:dev
 
 后端默认监听 `http://localhost:3000`。
 
-如果没有配置 `DB_HOST`，后端会使用本地 `sqljs` 数据文件 `nestlearn.db`，方便快速开发；如果设置了数据库环境变量，则连接 MySQL。
+后端默认连接本机 MySQL：数据库名 `nestlearn`，用户 `root`，密码 `root`。如果数据库配置不同，可以通过 `DB_HOST`、`DB_PORT`、`DB_DATABASE`、`DB_USER`、`DB_PASSWORD` 等环境变量覆盖。
 
 ### 2. 启动前端
 
@@ -50,7 +50,7 @@ npm install
 npm run dev
 ```
 
-前端默认监听 `http://localhost:5173`。开发环境中，Vite 会把 `/api` 请求代理到 `http://localhost:3000`。
+前端默认监听 `http://localhost:5173`。开发环境中，Vite 会把 `/api` 请求代理到 `http://localhost:3000`，对应后端的全局 API 前缀。
 
 ## Docker 启动
 
@@ -91,18 +91,18 @@ npm run preview
 
 | 模块 | 方法 | 路径 | 说明 |
 | --- | --- | --- | --- |
-| Auth | POST | `/auth/register` | 注册演示账号，返回模拟 token |
-| Auth | POST | `/auth/login` | 登录演示账号，返回模拟 token |
-| Projects | GET | `/projects` | 获取项目列表 |
-| Projects | POST | `/projects` | 创建项目 |
-| Projects | GET | `/projects/:id` | 获取项目详情 |
-| Projects | PUT | `/projects/:id` | 更新项目 |
-| Projects | DELETE | `/projects/:id` | 删除项目 |
-| Tasks | GET | `/tasks` | 获取任务列表 |
-| Tasks | POST | `/tasks` | 创建任务 |
-| Tasks | GET | `/tasks/:id` | 获取任务详情 |
-| Tasks | PUT | `/tasks/:id` | 更新任务 |
-| Tasks | DELETE | `/tasks/:id` | 删除任务 |
+| Auth | POST | `/api/auth/register` | 注册演示账号，返回模拟 token |
+| Auth | POST | `/api/auth/login` | 登录演示账号，返回模拟 token |
+| Projects | GET | `/api/projects` | 获取项目列表 |
+| Projects | POST | `/api/projects` | 创建项目 |
+| Projects | GET | `/api/projects/:id` | 获取项目详情 |
+| Projects | PUT | `/api/projects/:id` | 更新项目 |
+| Projects | DELETE | `/api/projects/:id` | 删除项目 |
+| Tasks | GET | `/api/tasks` | 获取任务列表 |
+| Tasks | POST | `/api/tasks` | 创建任务 |
+| Tasks | GET | `/api/tasks/:id` | 获取任务详情 |
+| Tasks | PUT | `/api/tasks/:id` | 更新任务 |
+| Tasks | DELETE | `/api/tasks/:id` | 删除任务 |
 
 ## 学习建议
 
