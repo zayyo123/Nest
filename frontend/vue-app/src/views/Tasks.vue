@@ -191,6 +191,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import api, { getApiErrorMessage } from '@/api'
 
@@ -226,6 +227,7 @@ const dueFilterOptions: Array<{ value: DueFilter; label: string }> = [
 export default defineComponent({
   name: 'Tasks',
   setup() {
+    const route = useRoute()
     const tasks = ref<Task[]>([])
     const projects = ref<Project[]>([])
     const loading = ref(false)
@@ -284,6 +286,30 @@ export default defineComponent({
         ElMessage.error(getApiErrorMessage(err, '无法加载任务'))
       } finally {
         loading.value = false
+      }
+    }
+
+    const applyRouteFilters = () => {
+      const due = route.query.due
+      const status = route.query.status
+      const priority = route.query.priority
+      const projectId = route.query.projectId
+
+      if (typeof due === 'string' && dueFilterOptions.some((option) => option.value === due)) {
+        filters.due = due as DueFilter
+      }
+
+      if (status === 'TODO' || status === 'IN_PROGRESS' || status === 'DONE') {
+        filters.status = status
+      }
+
+      if (priority === 'LOW' || priority === 'MEDIUM' || priority === 'HIGH') {
+        filters.priority = priority
+      }
+
+      if (typeof projectId === 'string') {
+        const parsed = Number(projectId)
+        if (Number.isInteger(parsed) && parsed > 0) filters.projectId = parsed
       }
     }
 
@@ -492,6 +518,7 @@ export default defineComponent({
     const formatDueDate = (dueDate?: string | null) => dueDate || '无截止日期'
 
     onMounted(async () => {
+      applyRouteFilters()
       await fetchProjects()
       await fetchTasks()
     })

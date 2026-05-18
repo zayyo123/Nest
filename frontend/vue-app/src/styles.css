@@ -258,6 +258,7 @@ a {
 }
 
 .metric-card {
+  display: block;
   position: relative;
   overflow: hidden;
   padding: 20px;
@@ -333,6 +334,19 @@ a {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--panel-soft);
+}
+
+.risk-link,
+.task-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.risk-link {
+  justify-content: flex-start;
 }
 
 .risk-list li {

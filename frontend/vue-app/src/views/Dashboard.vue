@@ -12,22 +12,22 @@
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 
     <div class="metric-grid" v-loading="loading">
-      <div class="metric-card accent-blue">
+      <router-link to="/projects" class="metric-card accent-blue">
         <span>项目数</span>
         <strong>{{ projects.length }}</strong>
-      </div>
-      <div class="metric-card accent-teal">
+      </router-link>
+      <router-link to="/tasks" class="metric-card accent-teal">
         <span>任务数</span>
         <strong>{{ tasks.length }}</strong>
-      </div>
-      <div class="metric-card accent-amber">
+      </router-link>
+      <router-link :to="{ path: '/tasks', query: { priority: 'HIGH' } }" class="metric-card accent-amber">
         <span>高优先级</span>
         <strong>{{ highPriorityCount }}</strong>
-      </div>
-      <div class="metric-card accent-red">
+      </router-link>
+      <router-link :to="{ path: '/tasks', query: { due: 'overdue' } }" class="metric-card accent-red">
         <span>已逾期</span>
         <strong>{{ overdueCount }}</strong>
-      </div>
+      </router-link>
     </div>
 
     <div class="content-grid">
@@ -52,25 +52,31 @@
         </div>
         <ul class="risk-list">
           <li>
-            <span class="risk-dot red"></span>
-            <div>
-              <strong>{{ overdueCount }} 个已逾期</strong>
-              <small>超过截止日期且尚未完成的任务</small>
-            </div>
+            <router-link :to="{ path: '/tasks', query: { due: 'overdue' } }" class="risk-link">
+              <span class="risk-dot red"></span>
+              <div>
+                <strong>{{ overdueCount }} 个已逾期</strong>
+                <small>超过截止日期且尚未完成的任务</small>
+              </div>
+            </router-link>
           </li>
           <li>
-            <span class="risk-dot amber"></span>
-            <div>
-              <strong>{{ dueSoonCount }} 个即将到期</strong>
-              <small>未来 7 天内到期的任务</small>
-            </div>
+            <router-link :to="{ path: '/tasks', query: { due: 'week' } }" class="risk-link">
+              <span class="risk-dot amber"></span>
+              <div>
+                <strong>{{ dueSoonCount }} 个即将到期</strong>
+                <small>未来 7 天内到期的任务</small>
+              </div>
+            </router-link>
           </li>
           <li>
-            <span class="risk-dot teal"></span>
-            <div>
-              <strong>{{ highPriorityCount }} 个高优先级</strong>
-              <small>需要重点关注的重要任务</small>
-            </div>
+            <router-link :to="{ path: '/tasks', query: { priority: 'HIGH' } }" class="risk-link">
+              <span class="risk-dot teal"></span>
+              <div>
+                <strong>{{ highPriorityCount }} 个高优先级</strong>
+                <small>需要重点关注的重要任务</small>
+              </div>
+            </router-link>
           </li>
         </ul>
       </section>
@@ -84,14 +90,14 @@
         </div>
         <el-empty v-if="!projectSummaries.length" description="暂无项目" :image-size="96" />
         <div v-else class="project-summary-grid">
-          <article v-for="project in projectSummaries" :key="project.id" class="project-summary">
+          <router-link v-for="project in projectSummaries" :key="project.id" class="project-summary" :to="`/projects/${project.id}`">
             <div class="project-summary-top">
               <span class="color-dot" :style="{ background: project.color }"></span>
               <strong>{{ project.name }}</strong>
             </div>
             <el-progress :percentage="project.completion" :stroke-width="10" />
             <small>已完成 {{ project.done }} / {{ project.total }}</small>
-          </article>
+          </router-link>
         </div>
       </section>
 
@@ -103,13 +109,15 @@
         <el-empty v-if="!recentTasks.length" description="暂无任务" :image-size="96" />
         <ul v-else class="task-list compact">
           <li v-for="task in recentTasks" :key="task.id">
-            <div>
-              <strong>{{ task.title }}</strong>
-              <small>{{ task.project?.name || '未关联项目' }}</small>
-            </div>
-            <el-tag :type="statusType(task.status)">
-              {{ statusText(task.status) }}
-            </el-tag>
+            <router-link class="task-link" :to="{ path: '/tasks', query: task.project?.id ? { projectId: task.project.id } : {} }">
+              <div>
+                <strong>{{ task.title }}</strong>
+                <small>{{ task.project?.name || '未关联项目' }}</small>
+              </div>
+              <el-tag :type="statusType(task.status)">
+                {{ statusText(task.status) }}
+              </el-tag>
+            </router-link>
           </li>
         </ul>
       </section>
