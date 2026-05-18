@@ -6,7 +6,7 @@
         <h1>{{ project?.name || '项目详情' }}</h1>
         <p>{{ project?.description || '暂无描述' }}</p>
       </div>
-      <router-link to="/tasks">
+      <router-link :to="{ path: '/tasks', query: { projectId: project?.id } }">
         <el-button type="primary">管理任务</el-button>
       </router-link>
     </div>
@@ -61,6 +61,17 @@
             <div class="tag-row">
               <el-tag :type="priorityType(task.priority)">{{ priorityText(task.priority) }}</el-tag>
               <el-tag :type="statusType(task.status)">{{ statusText(task.status) }}</el-tag>
+              <el-button
+                v-for="action in statusActions(task)"
+                :key="action.status"
+                size="small"
+                :type="action.type"
+                plain
+                :loading="updatingTaskId === task.id"
+                @click="updateTaskStatus(task, action.status)"
+              >
+                {{ action.label }}
+              </el-button>
             </div>
           </li>
         </ul>
@@ -92,6 +103,21 @@
             <span :class="{ 'danger-text': isOverdue(row) }">{{ row.dueDate || '-' }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="操作" width="130" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              v-for="action in statusActions(row)"
+              :key="action.status"
+              size="small"
+              :type="action.type"
+              plain
+              :loading="updatingTaskId === row.id"
+              @click="updateTaskStatus(row, action.status)"
+            >
+              {{ action.label }}
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </section>
   </section>
@@ -100,6 +126,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import api, { getApiErrorMessage } from '@/api'
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
@@ -128,6 +155,7 @@ export default defineComponent({
     const router = useRouter()
     const project = ref<Project | null>(null)
     const loading = ref(false)
+    const updatingTaskId = ref<number | null>(null)
     const error = ref('')
 
     const loadProject = async () => {
@@ -195,6 +223,35 @@ export default defineComponent({
       return types[priority]
     }
 
+    const statusActions = (task: Task) => {
+      if (task.status === 'TODO') {
+        return [{ label: '开始', status: 'IN_PROGRESS' as TaskStatus, type: 'warning' as const }]
+      }
+
+      if (task.status === 'IN_PROGRESS') {
+        return [{ label: '完成', status: 'DONE' as TaskStatus, type: 'success' as const }]
+      }
+
+      return [{ label: '重开', status: 'TODO' as TaskStatus, type: 'info' as const }]
+    }
+
+    const updateTaskStatus = async (task: Task, status: TaskStatus) => {
+      if (task.status === status || updatingTaskId.value) return
+
+      updatingTaskId.value = task.id
+      try {
+        const res = await api.put<Task>(`/tasks/${task.id}`, { status })
+        const projectTasks = project.value?.tasks || []
+        const index = projectTasks.findIndex((item) => item.id === task.id)
+        if (index >= 0) projectTasks[index] = res.data
+        ElMessage.success(`任务已更新为${statusText(status)}`)
+      } catch (err) {
+        ElMessage.error(getApiErrorMessage(err, '无法更新任务状态'))
+      } finally {
+        updatingTaskId.value = null
+      }
+    }
+
     const goBack = () => {
       router.push('/projects')
     }
@@ -216,10 +273,13 @@ export default defineComponent({
       priorityType,
       project,
       sortedTasks,
+      statusActions,
       statusText,
       statusType,
       tasks,
       todoCount,
+      updateTaskStatus,
+      updatingTaskId,
     }
   },
 })
