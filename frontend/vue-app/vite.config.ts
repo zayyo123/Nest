@@ -7,6 +7,17 @@ const projectRoot = fileURLToPath(new URL('.', import.meta.url))
 export default defineConfig({
   root: projectRoot,
   plugins: [vue()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-vue': ['vue', 'vue-router', 'pinia'],
+          'vendor-element': ['element-plus'],
+          'vendor-http': ['axios'],
+        },
+      },
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,

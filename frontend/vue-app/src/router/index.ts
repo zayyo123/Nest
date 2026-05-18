@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '@/views/Login.vue'
-import Register from '@/views/Register.vue'
-import Dashboard from '@/views/Dashboard.vue'
-import Projects from '@/views/Projects.vue'
-import ProjectDetail from '@/views/ProjectDetail.vue'
-import Tasks from '@/views/Tasks.vue'
 import { useAuthStore } from '@/stores/auth'
+
+const Login = () => import('@/views/Login.vue')
+const Register = () => import('@/views/Register.vue')
+const Dashboard = () => import('@/views/Dashboard.vue')
+const Projects = () => import('@/views/Projects.vue')
+const ProjectDetail = () => import('@/views/ProjectDetail.vue')
+const Tasks = () => import('@/views/Tasks.vue')
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
