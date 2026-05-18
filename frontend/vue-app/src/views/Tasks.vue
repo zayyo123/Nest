@@ -190,7 +190,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import api, { getApiErrorMessage } from '@/api'
@@ -295,6 +295,11 @@ export default defineComponent({
       const priority = route.query.priority
       const projectId = route.query.projectId
 
+      filters.due = ''
+      filters.status = ''
+      filters.priority = ''
+      filters.projectId = ''
+
       if (typeof due === 'string' && dueFilterOptions.some((option) => option.value === due)) {
         filters.due = due as DueFilter
       }
@@ -311,6 +316,8 @@ export default defineComponent({
         const parsed = Number(projectId)
         if (Number.isInteger(parsed) && parsed > 0) filters.projectId = parsed
       }
+
+      resetPage()
     }
 
     const resetForm = () => {
@@ -522,6 +529,8 @@ export default defineComponent({
       await fetchProjects()
       await fetchTasks()
     })
+
+    watch(() => route.query, applyRouteFilters)
 
     return {
       boardColumns,
