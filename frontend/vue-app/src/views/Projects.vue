@@ -19,6 +19,7 @@
           <el-option label="完成度最高" value="completion" />
           <el-option label="进行中最多" value="active" />
         </el-select>
+        <el-button plain :disabled="!hasActiveFilters" @click="clearFilters">清除筛选</el-button>
       </div>
 
       <div v-loading="loading" class="project-card-grid">
@@ -249,9 +250,16 @@ export default defineComponent({
         return b.id - a.id
       })
     })
+    const hasActiveFilters = computed(() => Boolean(filters.q.trim()) || filters.sort !== 'recent')
 
     const resetPage = () => {
       currentPage.value = 1
+    }
+
+    const clearFilters = () => {
+      filters.q = ''
+      filters.sort = 'recent'
+      syncFiltersToRoute()
     }
 
     const syncFiltersToRoute = () => {
@@ -297,6 +305,7 @@ export default defineComponent({
       editForm,
       filteredProjects,
       filters,
+      hasActiveFilters,
       loading,
       openCreate,
       openEdit,
@@ -305,6 +314,7 @@ export default defineComponent({
       projectActiveCount,
       projectCompletion,
       projectDoneCount,
+      clearFilters,
       remove,
       resetPage,
       saveProject,

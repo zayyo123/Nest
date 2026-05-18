@@ -31,6 +31,7 @@
         <el-select v-model="filters.projectId" placeholder="项目" clearable @change="syncFiltersToRoute">
           <el-option v-for="project in projects" :key="project.id" :label="project.name" :value="project.id" />
         </el-select>
+        <el-button plain :disabled="!hasActiveFilters" @click="clearFilters">清除筛选</el-button>
       </div>
 
       <div class="quick-filter-row" aria-label="任务时间筛选">
@@ -479,9 +480,21 @@ export default defineComponent({
       })
       return columns
     })
+    const hasActiveFilters = computed(() =>
+      Boolean(filters.q.trim() || filters.status || filters.priority || filters.projectId || filters.due),
+    )
 
     const resetPage = () => {
       currentPage.value = 1
+    }
+
+    const clearFilters = () => {
+      filters.q = ''
+      filters.status = ''
+      filters.priority = ''
+      filters.projectId = ''
+      filters.due = ''
+      syncFiltersToRoute()
     }
 
     const setDueFilter = (value: DueFilter) => {
@@ -580,6 +593,7 @@ export default defineComponent({
       filteredTasks,
       filters,
       formatDueDate,
+      hasActiveFilters,
       isOverdue,
       loading,
       openCreate,
@@ -589,6 +603,7 @@ export default defineComponent({
       priorityText,
       priorityType,
       projects,
+      clearFilters,
       remove,
       resetPage,
       saveTask,
