@@ -10,6 +10,18 @@ It is designed as a clean learning-friendly codebase: small enough to understand
 quickly, but structured like a real application with separated backend,
 frontend, API documentation, authentication guards, tests, and deployment files.
 
+## 中文学习导读
+
+这份项目已经在主要源码、配置、Docker、CI 和测试文件里加入了中文学习注释。建议按这条路线阅读：
+
+1. 先看 `frontend/vue-app/src/main.ts`、`App.vue`、`router/index.ts`，理解 Vue 应用如何启动和切页面。
+2. 再看 `frontend/vue-app/src/api.ts`、`stores/auth.ts`，理解登录 token 如何保存、如何自动带到请求头。
+3. 接着读 `frontend/vue-app/src/views/*.vue` 和 `styles.css`，学习页面状态、筛选、分页、弹窗和响应式布局。
+4. 后端从 `nest-app/src/main.ts`、`app.module.ts` 开始，再读 `auth`、`projects`、`tasks` 三个业务目录。
+5. 最后读 `docker-compose.yml`、`.github/workflows/ci.yml` 和 `nest-app/test/app.e2e-spec.ts`，理解部署和自动化检查。
+
+注意：`package.json`、`package-lock.json`、`tsconfig.json`、`.prettierrc`、`nest-cli.json` 这类 JSON 文件不支持标准注释，强行加 `//` 会导致工具解析失败。因此这些文件保持合法 JSON，相关学习说明放在 README 和相邻源码注释中。
+
 ## Features
 
 - User registration and login with hashed passwords and JWT tokens

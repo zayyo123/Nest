@@ -1,8 +1,11 @@
+# 学习注释：这个文件定义 GitHub 上“Bug report”表单。
+# 用户按表单填写后，维护者更容易复现和定位问题。
 name: Bug report
 description: Report something that is broken or behaving unexpectedly.
 title: "[Bug]: "
 labels: ["bug"]
 body:
+  # Summary 是必填项，用一句话描述出了什么问题。
   - type: textarea
     id: summary
     attributes:
@@ -16,6 +19,7 @@ body:
       label: Steps to reproduce
       description: List the smallest set of steps that reproduce the bug.
       placeholder: |
+        # 下面是多行占位示例，帮助提 issue 的人写出可复现步骤。
         1. Start the backend
         2. Open the frontend
         3. Click ...
@@ -36,4 +40,5 @@ body:
     id: logs
     attributes:
       label: Logs or screenshots
+      # render: shell 会让日志以代码块形式展示，方便阅读。
       render: shell

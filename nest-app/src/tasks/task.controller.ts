@@ -26,6 +26,7 @@ import { TaskService } from './task.service';
 
 @ApiTags('任务')
 @ApiBearerAuth()
+// 学习注释：任务接口全部需要登录，因为任务属于具体用户工作区。
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export class TaskController {
@@ -35,6 +36,7 @@ export class TaskController {
   @ApiOperation({ summary: '获取当前用户的任务列表' })
   @ApiResponse({ status: 200, type: [Task] })
   findAll(@CurrentUser() user: Express.User): Promise<Task[]> {
+    // 当前用户 ID 不从请求体获取，而是从 JWT 中读取，更可信。
     return this.service.findAll(user.sub);
   }
 
@@ -43,6 +45,7 @@ export class TaskController {
   @ApiResponse({ status: 201, type: Task })
   create(
     @CurrentUser() user: Express.User,
+    // CreateTaskDto 会校验标题、状态、优先级、日期格式和 projectId。
     @Body() dto: CreateTaskDto,
   ): Promise<Task> {
     return this.service.create(user.sub, dto);
@@ -54,6 +57,7 @@ export class TaskController {
   @ApiResponse({ status: 200, type: Task })
   findOne(
     @CurrentUser() user: Express.User,
+    // id 来自路径 /tasks/:id，ParseIntPipe 负责转成数字。
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Task> {
     return this.service.findOne(user.sub, id);
@@ -65,6 +69,7 @@ export class TaskController {
   update(
     @CurrentUser() user: Express.User,
     @Param('id', ParseIntPipe) id: number,
+    // UpdateTaskDto 字段均可选，因此可以只提交 status 来快捷修改任务状态。
     @Body() dto: UpdateTaskDto,
   ): Promise<Task> {
     return this.service.update(user.sub, id, dto);

@@ -6,6 +6,7 @@
         <p>登录后管理你的项目和任务。</p>
       </div>
 
+      <!-- 学习注释：v-if 为 true 时才渲染提示条；sessionExpired 来自路由 query。 -->
       <el-alert
         v-if="sessionExpired"
         title="登录状态已过期，请重新登录。"
@@ -14,8 +15,10 @@
         :closable="false"
       />
 
+      <!-- 学习注释：@submit.prevent 会阻止浏览器默认提交刷新页面，改由 submit 函数处理。 -->
       <el-form :model="form" class="auth-form" @submit.prevent="submit">
         <el-form-item>
+          <!-- v-model 是双向绑定：输入框变化会更新 form.email，form.email 变化也会更新输入框。 -->
           <el-input v-model="form.email" type="email" autocomplete="username" placeholder="邮箱" />
         </el-form-item>
         <el-form-item>
@@ -48,6 +51,8 @@ import { useAuthStore } from '@/stores/auth'
 export default defineComponent({
   name: 'Login',
   setup() {
+    // 学习注释：setup 是 Composition API 的入口。
+    // 这里声明的数据和函数 return 出去后，template 才能访问。
     // route 用来读取 query 参数，例如 redirect 和 expired；
     // router 用来在登录成功后主动跳转到目标页面。
     const route = useRoute()

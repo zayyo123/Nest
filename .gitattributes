@@ -1,5 +1,8 @@
+# 学习注释：.gitattributes 用来告诉 Git 如何处理不同文件的换行和文本属性。
+# 这里的核心目标是让 Windows 和 Linux/macOS 协作时，不因为换行符反复变化。
 * text=auto
 
+# Windows 批处理和 PowerShell 脚本通常保留 CRLF 换行。
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf

@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+  # 学习注释：db 是 MySQL 数据库服务，后端通过 DB_HOST=db 连接它。
   db:
     image: mysql:8.0
     container_name: nest_mysql
@@ -9,13 +10,16 @@ services:
     ports:
       - '3306:3306'
     volumes:
+      # 把数据库数据保存在 Docker volume 中，容器重建后数据仍然存在。
       - db-data:/var/lib/mysql
     healthcheck:
+      # healthcheck 让 Docker 判断数据库是否真的可用，而不是“容器刚启动就算成功”。
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 10
 
+  # 学习注释：backend 是 NestJS API 服务，负责登录、项目、任务等接口。
   backend:
     build:
       context: .
@@ -23,6 +27,7 @@ services:
     container_name: nest_backend
     depends_on:
       db:
+        # 等 MySQL 健康检查通过后再启动后端，减少连接数据库失败的概率。
         condition: service_healthy
     environment:
       DB_HOST: db
@@ -34,6 +39,7 @@ services:
     ports:
       - '3000:3000'
 
+  # 学习注释：frontend 是 Vue 构建后的静态站点，由 Nginx 托管。
   frontend:
     build:
       context: .
@@ -42,6 +48,7 @@ services:
     depends_on:
       - backend
     ports:
+      # 浏览器访问 localhost:5173，实际进入容器里的 Nginx 80 端口。
       - '5173:80'
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
@@ -50,4 +57,5 @@ services:
       retries: 3
 
 volumes:
+  # 命名 volume，专门保存 MySQL 数据。
   db-data:

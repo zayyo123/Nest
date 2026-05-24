@@ -1,12 +1,17 @@
 <!doctype html>
-<html lang="en">
+<!-- 学习注释：index.html 是 Vue 单页应用的 HTML 外壳。真正的页面内容由 main.ts 挂载进 #app。 -->
+<html lang="zh-CN">
   <head>
+    <!-- UTF-8 支持中文页面文案和中文注释。 -->
     <meta charset="UTF-8" />
+    <!-- viewport 让移动端按设备宽度布局，是响应式页面的基础配置。 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nest Learning Vue App</title>
   </head>
   <body>
+    <!-- Vue 应用最终会渲染到这个 div 里。 -->
     <div id="app"></div>
+    <!-- type="module" 让浏览器按 ES Module 方式加载 Vite 入口文件。 -->
     <script type="module" src="/src/main.ts"></script>
   </body>
   </html>

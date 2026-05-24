@@ -26,7 +26,9 @@ import { ProjectService } from './project.service';
 
 @ApiTags('项目')
 @ApiBearerAuth()
+// 学习注释：类级别使用 Guard 后，本控制器所有接口都必须带 Bearer token。
 @UseGuards(JwtAuthGuard)
+// @Controller('projects') 加上全局前缀 api，最终路径是 /api/projects。
 @Controller('projects')
 export class ProjectsController {
   constructor(private service: ProjectService) {}
@@ -35,6 +37,7 @@ export class ProjectsController {
   @ApiOperation({ summary: '获取当前用户的项目列表' })
   @ApiResponse({ status: 200, type: [Project] })
   findAll(@CurrentUser() user: Express.User): Promise<Project[]> {
+    // user.sub 来自 JWT 载荷，表示当前登录用户 ID；Service 用它做数据隔离。
     return this.service.findAll(user.sub);
   }
 
@@ -43,6 +46,7 @@ export class ProjectsController {
   @ApiResponse({ status: 201, type: Project })
   create(
     @CurrentUser() user: Express.User,
+    // @Body() 会读取请求体，并由全局 ValidationPipe 按 CreateProjectDto 校验。
     @Body() dto: CreateProjectDto,
   ): Promise<Project> {
     return this.service.create(user.sub, dto);
@@ -54,6 +58,7 @@ export class ProjectsController {
   @ApiResponse({ status: 200, type: Project })
   findOne(
     @CurrentUser() user: Express.User,
+    // ParseIntPipe 把 URL 中的字符串 id 转成 number；无法转换会自动返回 400。
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Project> {
     return this.service.findOne(user.sub, id);

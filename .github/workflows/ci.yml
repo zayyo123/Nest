@@ -1,5 +1,7 @@
 name: CI
 
+# 学习注释：on 表示什么时候触发 CI。
+# 这里在推送 main 分支和向 main 发起 PR 时运行。
 on:
   push:
     branches: [main]
@@ -7,11 +9,13 @@ on:
     branches: [main]
 
 jobs:
+  # 后端检查：安装依赖、构建、单元测试、端到端测试。
   backend:
     name: Backend
     runs-on: ubuntu-latest
     defaults:
       run:
+        # 后端命令都在 nest-app 目录执行，避免每一步重复 cd。
         working-directory: nest-app
     steps:
       - name: Checkout
@@ -20,11 +24,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
+          # 和 package.json engines 保持一致，CI 使用 Node 20。
           node-version: 20
+          # 缓存 npm 依赖，加快重复运行速度。
           cache: npm
           cache-dependency-path: nest-app/package-lock.json
 
       - name: Install dependencies
+        # npm ci 会严格按 package-lock.json 安装，适合 CI 环境。
         run: npm ci
 
       - name: Build
@@ -36,6 +43,7 @@ jobs:
       - name: E2E tests
         run: npm run test:e2e
 
+  # 前端检查：安装依赖、类型检查、生产构建。
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
@@ -57,7 +65,9 @@ jobs:
         run: npm ci
 
       - name: Type check
+        # vue-tsc 检查 .vue 和 .ts 文件里的 TypeScript 类型错误。
         run: npm run typecheck
 
       - name: Build
+        # Vite 生产构建可以发现模板、导入、打包配置等问题。
         run: npm run build

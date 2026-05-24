@@ -1,5 +1,6 @@
 <template>
   <section class="page-stack">
+    <!-- 学习注释：项目页负责项目 CRUD，同时展示每个项目的任务统计。 -->
     <div class="hero-panel">
       <div>
         <span class="eyebrow">项目组合</span>
@@ -10,6 +11,7 @@
     </div>
 
     <section class="panel">
+      <!-- 学习注释：筛选条件会同步到 URL query，刷新页面后仍能保留当前筛选状态。 -->
       <div class="toolbar toolbar-wrap">
         <el-input v-model="filters.q" placeholder="搜索项目" clearable @input="syncFiltersToRoute" />
         <el-select v-model="filters.sort" placeholder="排序" @change="syncFiltersToRoute">
@@ -108,6 +110,7 @@ type Project = {
 }
 
 const defaultColor = '#2563eb'
+// 学习注释：固定几个色板让用户快速选择，同时保留 Element Plus 颜色选择器做自由选择。
 const colorOptions = ['#2563eb', '#0f766e', '#7c3aed', '#db2777', '#ea580c', '#475569']
 const projectSortOptions: ProjectSort[] = ['recent', 'name', 'tasks', 'completion', 'active']
 
@@ -121,6 +124,7 @@ export default defineComponent({
     const saving = ref(false)
     const currentPage = ref(1)
     const pageSize = 6
+    // reactive 适合保存表单/筛选器这类“多个字段组成的对象”。
     const filters = reactive<{ q: string; sort: ProjectSort }>({ q: '', sort: 'recent' })
     const dialogVisible = ref(false)
     const dialogTitle = ref('新建项目')
@@ -128,6 +132,7 @@ export default defineComponent({
     const editingId = ref<number | null>(null)
 
     const fetchProjects = async () => {
+      // 项目列表来自后端 /projects，后端会根据 token 只返回当前用户的数据。
       loading.value = true
       try {
         const res = await api.get<Project[]>('/projects')
@@ -140,6 +145,7 @@ export default defineComponent({
     }
 
     const applyRouteFilters = () => {
+      // 从 URL query 恢复筛选条件，这是“状态可分享、可刷新恢复”的常见做法。
       const q = route.query.q
       const sort = route.query.sort
 
@@ -191,6 +197,7 @@ export default defineComponent({
 
       saving.value = true
       try {
+        // payload 是真正发送给后端的数据，提交前统一 trim，避免保存纯空格。
         const payload = {
           name: editForm.name.trim(),
           description: editForm.description.trim(),
@@ -216,6 +223,7 @@ export default defineComponent({
 
     const remove = async (project: Project) => {
       try {
+        // 删除前弹确认框，防止误删；Element Plus 的 confirm 返回 Promise。
         await ElMessageBox.confirm(`确定删除“${project.name}”吗？关联任务会保留，但不再归属该项目。`, '删除项目', {
           type: 'warning',
         })
@@ -228,6 +236,7 @@ export default defineComponent({
     }
 
     const filteredProjects = computed(() => {
+      // 先按搜索词过滤，再交给 sortedProjects 排序。
       const q = filters.q.trim().toLowerCase()
       if (!q) return projects.value
 
@@ -242,6 +251,7 @@ export default defineComponent({
     })
 
     const sortedProjects = computed(() => {
+      // slice() 复制数组后再 sort，避免直接修改 projects 原始顺序。
       return filteredProjects.value.slice().sort((a, b) => {
         if (filters.sort === 'name') return a.name.localeCompare(b.name)
         if (filters.sort === 'tasks') return projectTaskCount(b) - projectTaskCount(a) || b.id - a.id
@@ -263,6 +273,7 @@ export default defineComponent({
     }
 
     const syncFiltersToRoute = () => {
+      // 把筛选器写回 URL query；没有启用的条件不写入，保持 URL 简洁。
       resetPage()
 
       const query: Record<string, string> = {}
@@ -294,6 +305,7 @@ export default defineComponent({
       await fetchProjects()
     })
 
+    // route.query 变化时重新应用筛选，例如用户点浏览器后退/前进。
     watch(() => route.query, applyRouteFilters)
 
     return {

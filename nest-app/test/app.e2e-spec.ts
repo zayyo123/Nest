@@ -3,20 +3,24 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 
+// 学习注释：每次测试注册不同邮箱，避免唯一索引冲突导致测试互相影响。
 const uniqueEmail = (label: string) => {
   const safeLabel = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return `${safeLabel}-${Date.now()}-${Math.random().toString(16).slice(2)}@example.com`;
 };
 
+// 学习注释：e2e 测试会启动一个接近真实的 Nest 应用，并通过 HTTP 请求验证完整链路。
 describe('Project manager API (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    // 创建包含 AppModule 的测试应用，等于把真实模块组装起来跑。
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
+    // 测试应用要和 main.ts 保持相同的全局前缀和校验规则，否则测试环境和真实环境不一致。
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
@@ -29,6 +33,7 @@ describe('Project manager API (e2e)', () => {
   });
 
   const register = async (label: string) => {
+    // 测试里常把重复步骤封装成 helper，例如注册用户并返回 Bearer token。
     const email = uniqueEmail(label);
     const res = await request(app.getHttpServer())
       .post('/api/auth/register')
@@ -43,6 +48,7 @@ describe('Project manager API (e2e)', () => {
   };
 
   it('rejects invalid auth payloads', async () => {
+    // 验证 ValidationPipe + DTO 生效：非法邮箱、过短密码会被拒绝。
     await request(app.getHttpServer())
       .post('/api/auth/register')
       .send({ email: 'not-an-email', password: '123' })
@@ -50,11 +56,13 @@ describe('Project manager API (e2e)', () => {
   });
 
   it('protects project and task resources', async () => {
+    // 未携带 token 访问受保护资源时，应由 JwtAuthGuard 返回 401。
     await request(app.getHttpServer()).get('/api/projects').expect(401);
     await request(app.getHttpServer()).get('/api/tasks').expect(401);
   });
 
   it('supports private project and task CRUD for the current user', async () => {
+    // 这条测试覆盖正常用户的项目/任务创建、更新、查询流程。
     const user = await register('Owner User');
 
     const projectRes = await request(app.getHttpServer())
@@ -108,6 +116,7 @@ describe('Project manager API (e2e)', () => {
   });
 
   it('prevents users from reading or mutating another user workspace', async () => {
+    // 这条测试验证 ownerId 隔离：用户不能读写别人的项目。
     const owner = await register('Workspace Owner');
     const outsider = await register('Workspace Outsider');
 
@@ -140,6 +149,7 @@ describe('Project manager API (e2e)', () => {
   });
 
   it('prevents users from reading, mutating, or attaching tasks across workspaces', async () => {
+    // 这条测试验证任务和项目关联也不能跨用户工作区。
     const owner = await register('Task Owner');
     const outsider = await register('Task Outsider');
 
@@ -202,6 +212,7 @@ describe('Project manager API (e2e)', () => {
   });
 
   afterAll(async () => {
+    // 测试结束后关闭 Nest 应用，释放数据库连接和 HTTP server。
     await app?.close();
   });
 });

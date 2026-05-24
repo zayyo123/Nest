@@ -1,17 +1,22 @@
+# 学习注释：Dependabot 会定期检查依赖是否有新版本，并自动提交 PR。
+# 它适合提醒你升级 npm 包和 GitHub Actions，减少长期不维护带来的安全风险。
 version: 2
 updates:
+  # 检查后端 nest-app/package.json 里的 npm 依赖。
   - package-ecosystem: npm
     directory: /nest-app
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
 
+  # 检查前端 frontend/vue-app/package.json 里的 npm 依赖。
   - package-ecosystem: npm
     directory: /frontend/vue-app
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
 
+  # 检查 .github/workflows 里使用的 GitHub Actions 版本。
   - package-ecosystem: github-actions
     directory: /
     schedule:

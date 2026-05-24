@@ -1,9 +1,11 @@
-# compiled output
+# 学习注释：这是后端子项目自己的 .gitignore，规则只影响 nest-app 目录下的文件。
+
+# compiled output / 编译产物：TypeScript 编译后生成，可重新构建。
 /dist
 /node_modules
 /build
 
-# Logs
+# Logs / 日志：本地运行输出，不提交。
 logs
 *.log
 npm-debug.log*
@@ -12,14 +14,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# OS
+# OS / 系统文件。
 .DS_Store
 
-# Tests
+# Tests / 测试覆盖率产物。
 /coverage
 /.nyc_output
 
-# IDEs and editors
+# IDEs and editors / 编辑器生成的配置或临时文件。
 /.idea
 .project
 .classpath
@@ -35,18 +37,18 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# dotenv environment variable files
+# dotenv environment variable files / 环境变量文件，通常包含密码和密钥。
 .env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
 
-# temp directory
+# temp directory / 临时目录。
 .temp
 .tmp
 
-# Runtime data
+# Runtime data / 运行期进程和诊断文件。
 pids
 *.pid
 *.seed

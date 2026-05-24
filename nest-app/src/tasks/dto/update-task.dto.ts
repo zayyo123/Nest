@@ -11,6 +11,8 @@ import {
 } from 'class-validator';
 import { TaskPriority, TaskStatus } from '../entities/task.entity';
 
+// 学习注释：UpdateTaskDto 和 CreateTaskDto 很像，但所有字段都可选。
+// 这样前端可以只提交一个字段，例如只更新 status。
 export class UpdateTaskDto {
   @IsOptional()
   @IsString()

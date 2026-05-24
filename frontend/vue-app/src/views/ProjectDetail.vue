@@ -1,5 +1,6 @@
 <template>
   <section class="page-stack">
+    <!-- 学习注释：详情页从路由参数 :id 中读取项目 ID，再向后端请求单个项目。 -->
     <div class="page-header">
       <div>
         <el-button text class="back-button" @click="goBack">返回项目列表</el-button>
@@ -159,6 +160,7 @@ export default defineComponent({
     const error = ref('')
 
     const loadProject = async () => {
+      // route.params.id 来自 /projects/:id，例如 /projects/3 的 id 就是 3。
       loading.value = true
       error.value = ''
 
@@ -172,6 +174,7 @@ export default defineComponent({
       }
     }
 
+    // 详情接口返回 project，同时携带 tasks；这里把 tasks 提出来便于后续统计。
     const tasks = computed(() => project.value?.tasks || [])
     const todayString = () => new Date().toISOString().slice(0, 10)
     const isOverdue = (task: Task) => Boolean(task.dueDate && task.status !== 'DONE' && task.dueDate < todayString())
@@ -186,6 +189,7 @@ export default defineComponent({
     })
 
     const sortedTasks = computed(() => {
+      // 任务排序规则：先按状态，再按截止日期，再按优先级，让“需要处理的任务”更靠前。
       const statusWeight: Record<TaskStatus, number> = { TODO: 0, IN_PROGRESS: 1, DONE: 2 }
       const priorityWeight: Record<TaskPriority, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 }
       return tasks.value
@@ -224,6 +228,7 @@ export default defineComponent({
     }
 
     const statusActions = (task: Task) => {
+      // 根据当前状态给出下一步动作，避免用户在界面上选择非法状态流转。
       if (task.status === 'TODO') {
         return [{ label: '开始', status: 'IN_PROGRESS' as TaskStatus, type: 'warning' as const }]
       }
@@ -236,6 +241,7 @@ export default defineComponent({
     }
 
     const updateTaskStatus = async (task: Task, status: TaskStatus) => {
+      // 防止重复点击：如果已经是目标状态，或当前有任务正在更新，就直接返回。
       if (task.status === status || updatingTaskId.value) return
 
       updatingTaskId.value = task.id
@@ -243,6 +249,7 @@ export default defineComponent({
         const res = await api.put<Task>(`/tasks/${task.id}`, { status })
         const projectTasks = project.value?.tasks || []
         const index = projectTasks.findIndex((item) => item.id === task.id)
+        // 局部替换数组中的任务，页面会立即基于新数据重新计算统计值。
         if (index >= 0) projectTasks[index] = res.data
         ElMessage.success(`任务已更新为${statusText(status)}`)
       } catch (err) {

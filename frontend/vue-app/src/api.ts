@@ -16,6 +16,8 @@ export const getApiErrorMessage = (error: unknown, fallback = '请求失败') =>
   return fallback
 }
 
+// 学习注释：request interceptor（请求拦截器）会在每个请求真正发出去之前运行。
+// 很适合统一加 token、语言、追踪 ID 等公共请求头。
 api.interceptors.request.use((config) => {
   // 每次请求前从 localStorage 读取 token，而不是只从 Pinia 读。
   // 这样即使页面刷新后 store 还没完全使用，API 仍然能带上已保存的登录凭证。
@@ -30,6 +32,8 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// 学习注释：response interceptor（响应拦截器）会在拿到后端响应后运行。
+// 这里统一处理 401，可以避免每个页面都重复写“登录过期跳转”逻辑。
 api.interceptors.response.use(
   (response) => response,
   (error) => {

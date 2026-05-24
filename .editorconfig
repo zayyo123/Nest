@@ -1,7 +1,11 @@
+# 学习注释：EditorConfig 用来统一不同编辑器里的格式规则。
+# 团队项目中很常见，它可以减少“明明没改逻辑却因为缩进/换行产生大量 diff”的问题。
 root = true
 
 [*]
+# 所有文本文件统一使用 UTF-8，这样中文注释和页面文案不会乱码。
 charset = utf-8
+# LF 是 Linux/macOS 常见换行；配合 Git 可以让跨平台协作更稳定。
 end_of_line = lf
 indent_style = space
 indent_size = 2
@@ -9,7 +13,9 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.md]
+# Markdown 行尾两个空格有时表示换行，所以这里不自动清理行尾空格。
 trim_trailing_whitespace = false
 
 [*.ps1]
+# PowerShell 脚本在 Windows 上使用 CRLF 更友好。
 end_of_line = crlf

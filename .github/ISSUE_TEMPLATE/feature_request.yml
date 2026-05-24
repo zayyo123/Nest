@@ -1,8 +1,11 @@
+# 学习注释：这个文件定义 GitHub 上“功能建议”表单。
+# 重点不是先写实现方案，而是先说清楚用户问题和期望行为。
 name: Feature request
 description: Suggest an improvement or new capability.
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
+  # Problem 让提出者描述真实痛点，避免为了技术而技术。
   - type: textarea
     id: problem
     attributes:

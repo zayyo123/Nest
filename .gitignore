@@ -1,13 +1,16 @@
-# Dependencies
+# 学习注释：.gitignore 负责声明“哪些本地文件不进入 Git 仓库”。
+# 初学者要记住：依赖、构建产物、日志、密钥、数据库文件通常都不应该提交。
+
+# Dependencies / 依赖目录：可通过 npm install 重新生成，不进仓库。
 node_modules/
 
-# Build output
+# Build output / 构建产物：由源码生成，提交源码即可。
 dist/
 build/
 coverage/
 .nyc_output/
 
-# Logs
+# Logs / 运行日志：本地调试信息，不属于项目源码。
 logs/
 .runtime-logs/
 *.log
@@ -16,19 +19,20 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment files
+# Environment files / 环境变量：经常包含密码、密钥、数据库地址。
 .env
 .env.*
 .env.local
 .env.*.local
+# 只保留示例文件，方便别人知道需要配置哪些变量。
 !.env.example
 
-# Local databases
+# Local databases / 本地数据库：属于个人开发环境数据。
 *.db
 *.sqlite
 *.sqlite3
 
-# OS and editor files
+# OS and editor files / 系统和编辑器生成的文件。
 .DS_Store
 Thumbs.db
 .idea/
@@ -38,12 +42,12 @@ Thumbs.db
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Temporary files
+# Temporary files / 临时文件。
 .temp/
 .tmp/
 *.pid
 *.seed
 *.pid.lock
 
-# Local maintenance scripts
+# Local maintenance scripts / 本地维护脚本：可能和个人机器强相关。
 reset-mysql80-root.ps1

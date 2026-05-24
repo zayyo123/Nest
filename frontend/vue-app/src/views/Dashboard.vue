@@ -1,5 +1,6 @@
 <template>
   <section class="page-stack">
+    <!-- 学习注释：仪表盘页面只展示汇总信息，不在这里编辑数据。 -->
     <div class="hero-panel">
       <div>
         <span class="eyebrow">工作区概览</span>
@@ -12,6 +13,7 @@
     <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" />
 
     <div class="metric-grid" v-loading="loading">
+      <!-- 学习注释：router-link 可以包住整张卡片，让指标既是展示也是快捷入口。 -->
       <router-link to="/projects" class="metric-card accent-blue">
         <span>项目数</span>
         <strong>{{ projects.length }}</strong>
@@ -131,6 +133,7 @@ import api, { getApiErrorMessage } from '@/api'
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
+// 学习注释：这里定义的是前端需要用到的数据形状，不一定等于后端实体的全部字段。
 type Project = { id: number; name: string; color?: string }
 type Task = {
   id: number
@@ -142,6 +145,7 @@ type Task = {
 }
 
 const todayString = () => new Date().toISOString().slice(0, 10)
+// 学习注释：日期在页面中只按 YYYY-MM-DD 比较，所以统一截取 ISO 字符串前 10 位。
 const addDaysString = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() + days)
@@ -157,10 +161,12 @@ export default defineComponent({
     const error = ref('')
 
     const refresh = async () => {
+      // 学习注释：loading 控制页面加载态；error 控制错误提示。
       loading.value = true
       error.value = ''
 
       try {
+        // Promise.all 并发请求项目和任务，比先请求项目再请求任务更快。
         const [projectRes, taskRes] = await Promise.all([api.get('/projects'), api.get('/tasks')])
         projects.value = projectRes.data
         tasks.value = taskRes.data
@@ -171,6 +177,8 @@ export default defineComponent({
       }
     }
 
+    // 学习注释：computed 是“由已有响应式数据推导出的值”。
+    // tasks 变化时，这些统计值会自动重新计算并更新页面。
     const todoCount = computed(() => tasks.value.filter((task) => task.status === 'TODO').length)
     const inProgressCount = computed(() => tasks.value.filter((task) => task.status === 'IN_PROGRESS').length)
     const doneCount = computed(() => tasks.value.filter((task) => task.status === 'DONE').length)
@@ -192,6 +200,7 @@ export default defineComponent({
     const recentTasks = computed(() => tasks.value.slice(0, 6))
 
     const projectSummaries = computed(() =>
+      // 为每个项目计算任务数和完成率，模板中就不用写复杂逻辑。
       projects.value.map((project) => {
         const related = tasks.value.filter((task) => task.project?.id === project.id)
         const done = related.filter((task) => task.status === 'DONE').length
@@ -206,6 +215,7 @@ export default defineComponent({
     )
 
     const statusText = (status: TaskStatus) => {
+      // 把后端枚举值转换成中文展示文案。
       const labels = { TODO: '待办', IN_PROGRESS: '进行中', DONE: '已完成' }
       return labels[status]
     }
@@ -215,6 +225,7 @@ export default defineComponent({
       return types[status]
     }
 
+    // 学习注释：onMounted 会在组件首次挂载到页面后执行，适合发起初始数据请求。
     onMounted(refresh)
 
     return {

@@ -6,6 +6,7 @@
         <p>创建属于你的项目和任务工作区。</p>
       </div>
 
+      <!-- 学习注释：注册页结构和登录页相似，区别是多了 name 字段，并调用 register action。 -->
       <el-form :model="form" class="auth-form" @submit.prevent="submit">
         <el-form-item>
           <el-input v-model="form.name" autocomplete="name" placeholder="姓名" />
@@ -43,8 +44,10 @@ import { useAuthStore } from '@/stores/auth'
 export default defineComponent({
   name: 'Register',
   setup() {
+    // 学习注释：useRouter 用来“主动跳转页面”，例如注册成功后进入 /dashboard。
     const router = useRouter()
     const auth = useAuthStore()
+    // ref 适合保存单个基础值；模板中读取 loading 时会自动解包 .value。
     const loading = ref(false)
     // 注册表单使用 reactive，模板中的 v-model 会直接同步这里的字段。
     const form = reactive({ name: '', email: '', password: '' })

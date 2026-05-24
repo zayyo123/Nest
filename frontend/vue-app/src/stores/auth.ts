@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import api from '@/api'
 
+// 学习注释：interface 用来描述对象形状。
+// TypeScript 会据此检查 user.id/name/email 是否用错类型或拼错字段。
 export interface User {
   id: number
   name: string
@@ -31,6 +33,8 @@ const readStoredUser = (): User | null => {
   }
 }
 
+// 学习注释：Pinia store 是一个集中管理状态的地方。
+// 登录状态会被导航栏、路由守卫、接口拦截器共同使用，所以适合放在 store 中。
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     // 页面刷新时从 localStorage 恢复 user/token，让用户不必重新登录。

@@ -1,5 +1,6 @@
 <template>
   <section class="page-stack">
+    <!-- 学习注释：任务页是本项目最完整的前端页面，包含筛选、看板/表格切换、分页和 CRUD。 -->
     <div class="hero-panel">
       <div>
         <span class="eyebrow">执行管理</span>
@@ -7,6 +8,7 @@
         <p>按优先级、截止日期、状态和项目上下文规划工作。</p>
       </div>
       <div class="hero-actions">
+        <!-- v-model 绑定 viewMode；切换后通过 @change 把模式同步到 URL query。 -->
         <el-radio-group v-model="viewMode" size="large" @change="syncFiltersToRoute">
           <el-radio-button label="board">看板</el-radio-button>
           <el-radio-button label="table">表格</el-radio-button>
@@ -16,6 +18,7 @@
     </div>
 
     <section class="panel">
+      <!-- 学习注释：这一行是组合筛选器，所有筛选条件都会共同作用于 filteredTasks。 -->
       <div class="toolbar toolbar-wrap">
         <el-input v-model="filters.q" placeholder="搜索任务" clearable @input="syncFiltersToRoute" />
         <el-select v-model="filters.status" placeholder="状态" clearable @change="syncFiltersToRoute">
@@ -34,6 +37,7 @@
         <el-button plain :disabled="!hasActiveFilters" @click="clearFilters">清除筛选</el-button>
       </div>
 
+      <!-- 学习注释：快捷时间筛选由 dueFilterOptions 数据驱动渲染，新增选项时只改数组即可。 -->
       <div class="quick-filter-row" aria-label="任务时间筛选">
         <button
           v-for="option in dueFilterOptions"
@@ -48,7 +52,9 @@
         </button>
       </div>
 
+      <!-- 学习注释：v-if/v-else 在看板视图和表格视图之间切换。 -->
       <div v-if="viewMode === 'board'" v-loading="loading" class="board-grid">
+        <!-- boardColumns 是 computed，把任务按 TODO/IN_PROGRESS/DONE 分成三列。 -->
         <section v-for="column in boardColumns" :key="column.status" class="board-column">
           <div class="board-column-header">
             <h2>{{ column.title }}</h2>
@@ -89,6 +95,7 @@
       </div>
 
       <template v-else>
+        <!-- Element Plus 表格适合密集查看和扫描数据。 -->
         <el-table :data="pagedTasks" v-loading="loading" empty-text="暂无任务">
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="title" label="标题" min-width="180" />
@@ -136,6 +143,7 @@
           </el-table-column>
         </el-table>
 
+        <!-- 学习注释：分页只影响前端展示；所有任务数据已经一次性从后端取回。 -->
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
@@ -145,6 +153,7 @@
       </template>
     </section>
 
+    <!-- 学习注释：同一个弹窗复用为“新建”和“编辑”，通过 editingId 判断提交方式。 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="580px">
       <el-form :model="editForm" label-width="100px">
         <el-form-item label="标题" required>
@@ -201,6 +210,7 @@ type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 type DueFilter = '' | 'today' | 'week' | 'overdue'
 type ViewMode = 'board' | 'table'
 type Project = { id: number; name: string; color?: string }
+// 学习注释：Task 类型描述当前页面会使用的任务字段，帮助 TypeScript 做类型检查。
 type Task = {
   id: number
   title: string
@@ -213,6 +223,7 @@ type Task = {
 }
 
 const defaultColor = '#2563eb'
+// 学习注释：日期字符串统一为 YYYY-MM-DD 后，可以直接用字符串比较先后。
 const todayString = () => new Date().toISOString().slice(0, 10)
 const addDaysString = (days: number) => {
   const date = new Date()
@@ -229,6 +240,7 @@ const dueFilterOptions: Array<{ value: DueFilter; label: string }> = [
 export default defineComponent({
   name: 'Tasks',
   setup() {
+    // route 用来读取 URL query，router 用来把筛选条件写回 URL。
     const route = useRoute()
     const router = useRouter()
     const tasks = ref<Task[]>([])
@@ -239,6 +251,7 @@ export default defineComponent({
     const viewMode = ref<ViewMode>('board')
     const currentPage = ref(1)
     const pageSize = 8
+    // 学习注释：filters 是筛选器状态；用 reactive 保存多个相关字段比多个 ref 更清晰。
     const filters = reactive<{
       q: string
       status: '' | TaskStatus
@@ -273,6 +286,7 @@ export default defineComponent({
 
     const fetchProjects = async () => {
       try {
+        // 任务编辑弹窗需要项目下拉框，所以任务页也要加载项目列表。
         const res = await api.get<Project[]>('/projects')
         projects.value = res.data
       } catch (err) {
@@ -281,6 +295,7 @@ export default defineComponent({
     }
 
     const fetchTasks = async () => {
+      // 任务列表来自后端 /tasks；鉴权 token 会由 api.ts 的请求拦截器自动带上。
       loading.value = true
       try {
         const res = await api.get<Task[]>('/tasks')
@@ -293,6 +308,7 @@ export default defineComponent({
     }
 
     const applyRouteFilters = () => {
+      // 从 URL query 恢复筛选器，保证刷新页面或分享链接时状态不丢。
       const due = route.query.due
       const status = route.query.status
       const priority = route.query.priority
@@ -336,6 +352,7 @@ export default defineComponent({
     }
 
     const resetForm = () => {
+      // 新建任务前重置表单，避免上一次编辑残留的数据污染下一次创建。
       editingId.value = null
       editForm.title = ''
       editForm.description = ''
@@ -352,6 +369,7 @@ export default defineComponent({
     }
 
     const openEdit = (task: Task) => {
+      // 编辑时把当前任务数据复制到表单；用户修改表单时不会直接改列表里的原对象。
       editingId.value = task.id
       editForm.title = task.title
       editForm.description = task.description || ''
@@ -371,6 +389,7 @@ export default defineComponent({
 
       saving.value = true
       try {
+        // 后端 DTO 接收 null 表示“无截止日期/无项目”，所以空字符串在这里转成 null。
         const payload = {
           title: editForm.title.trim(),
           description: editForm.description.trim(),
@@ -381,9 +400,11 @@ export default defineComponent({
         }
 
         if (editingId.value) {
+          // 有 editingId 表示编辑已有任务，调用 PUT /tasks/:id。
           await api.put(`/tasks/${editingId.value}`, payload)
           ElMessage.success('任务已更新')
         } else {
+          // 没有 editingId 表示新建任务，调用 POST /tasks。
           await api.post('/tasks', payload)
           ElMessage.success('任务已创建')
         }
@@ -409,6 +430,7 @@ export default defineComponent({
     }
 
     const statusActions = (task: Task) => {
+      // 把状态流转按钮封装成函数，模板只负责渲染按钮，不写复杂判断。
       if (task.status === 'TODO') {
         return [{ label: '开始', status: 'IN_PROGRESS' as TaskStatus, type: 'warning' as const }]
       }
@@ -421,6 +443,7 @@ export default defineComponent({
     }
 
     const updateTaskStatus = async (task: Task, status: TaskStatus) => {
+      // 快捷改状态时只提交 status 字段，减少不必要的数据传输。
       if (task.status === status || updatingTaskId.value) return
 
       updatingTaskId.value = task.id
@@ -437,6 +460,7 @@ export default defineComponent({
     }
 
     const filteredTasks = computed(() => {
+      // 所有筛选条件在这里集中判断：文本、状态、优先级、项目、截止日期。
       const q = filters.q.trim().toLowerCase()
 
       return tasks.value.filter((task) => {
@@ -455,6 +479,7 @@ export default defineComponent({
     })
 
     const sortedTasks = computed(() => {
+      // 排序优先级：状态 -> 截止日期 -> 优先级 -> 新旧。
       return filteredTasks.value.slice().sort((a, b) => {
         const statusDiff = statusSortWeight(a.status) - statusSortWeight(b.status)
         if (statusDiff) return statusDiff
@@ -470,6 +495,7 @@ export default defineComponent({
     })
 
     const boardColumns = computed(() => {
+      // 看板列不是后端直接返回的，而是前端从 sortedTasks 按状态分组得到。
       const columns: Array<{ status: TaskStatus; title: string; tasks: Task[] }> = [
         { status: 'TODO', title: '待办', tasks: [] },
         { status: 'IN_PROGRESS', title: '进行中', tasks: [] },
@@ -503,6 +529,7 @@ export default defineComponent({
     }
 
     const syncFiltersToRoute = () => {
+      // URL 只保存非默认条件，例如默认看板模式不写 view=board。
       resetPage()
 
       const query: Record<string, string> = {}
@@ -574,11 +601,13 @@ export default defineComponent({
     const formatDueDate = (dueDate?: string | null) => dueDate || '无截止日期'
 
     onMounted(async () => {
+      // 页面首次打开时，先恢复 URL 筛选，再加载项目和任务数据。
       applyRouteFilters()
       await fetchProjects()
       await fetchTasks()
     })
 
+    // 当用户通过浏览器前进/后退改变 URL query 时，页面筛选器跟着同步。
     watch(() => route.query, applyRouteFilters)
 
     return {

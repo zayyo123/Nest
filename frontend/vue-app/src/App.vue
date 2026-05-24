@@ -13,7 +13,8 @@ import NavBar from "./components/NavBar.vue";
 
 export default defineComponent({
   name: "App",
-  // 根组件只负责搭建布局和挂载导航栏，具体业务页面由路由决定。
+  // 学习注释：根组件只负责搭建布局和挂载导航栏。
+  // 具体业务页面由 router-view 根据当前 URL 决定渲染哪个 views/*.vue。
   components: { NavBar },
 });
 </script>
